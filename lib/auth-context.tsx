@@ -1,15 +1,9 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface User {
-  id: string
-  email: string
-  name: string
-  role: 'admin' | 'operator' | 'viewer'
-  avatar?: string
-}
+import type { User } from '@supabase/supabase-js'
+import { supabase } from './supabase'
 
 interface AuthContextType {
   user: User | null
@@ -23,47 +17,57 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Mock authentication - accept any valid email format with password "demo"
-    if (email.includes('@') && password.length >= 4) {
-      const mockUser: User = {
-        id: 'U-001',
-        email,
-        name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        role: 'admin',
-        avatar: '/placeholder.svg?height=32&width=32'
-      }
-      setUser(mockUser)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
       setIsLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setIsLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      setIsLoading(true)
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      setIsLoading(false)
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
       router.push('/dashboard')
       return { success: true }
-    }
-    
-    setIsLoading(false)
-    return { success: false, error: 'Invalid credentials. Please try again.' }
-  }, [router])
+    },
+    [router],
+  )
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut()
     setUser(null)
     router.push('/')
   }, [router])
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
-      isLoading, 
-      login, 
-      logout 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

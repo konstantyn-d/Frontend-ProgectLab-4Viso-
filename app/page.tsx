@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
@@ -12,34 +12,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+  const { login, isLoading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setIsLoading(true)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    if (email.includes('@') && password.length >= 4) {
-      router.push('/dashboard')
-    } else {
-      setError('Invalid credentials. Please try again.')
-      setIsLoading(false)
+    const result = await login(email, password)
+    if (!result.success) {
+      setError(result.error || 'Invalid credentials. Please try again.')
     }
   }
 
   return (
     <div className="min-h-screen flex bg-[#0A0A0A]">
-      {/* Left Panel - Minimal Branding */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-[#222222]">
         <div>
           <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">PharmaTrack</span>
           <span className="text-[10px] text-[#3D3D3D] ml-2">by 4Viso</span>
         </div>
-        
+
         <div className="max-w-sm">
           <h1 className="text-[32px] font-light text-[#F5F5F5] leading-tight mb-6">
             Pharmaceutical Supply Chain Intelligence
@@ -48,16 +40,14 @@ export default function LoginPage() {
             Real-time visibility into temperature-sensitive logistics. Monitor GDP compliance and mitigate supply chain risks.
           </p>
         </div>
-        
+
         <div className="text-[11px] text-[#3D3D3D]">
           2024 4Viso. All rights reserved.
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#111111]">
         <div className="w-full max-w-sm">
-          {/* Mobile Logo */}
           <div className="lg:hidden mb-12">
             <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">PharmaTrack</span>
           </div>
