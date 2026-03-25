@@ -1,125 +1,63 @@
 'use client'
 
 import { useState } from 'react'
-import { mockAuditLog, type AuditLogEntry } from '@/lib/mock-data'
+import { useQuery } from '@tanstack/react-query'
+import { getAuditEvents, type AuditEventRow } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Download, 
-  Filter, 
-  ChevronDown,
-  Calendar,
-  User
-} from 'lucide-react'
+import { Download, Search } from 'lucide-react'
+import apiClient from '@/lib/api/client'
 
-const actionLabels: Record<AuditLogEntry['action'], string> = {
-  lane_created: 'Lane Created',
-  lane_updated: 'Lane Updated',
-  temperature_alert: 'Temperature Alert',
-  compliance_check: 'Compliance Check',
-  shipment_departed: 'Shipment Departed',
-  shipment_arrived: 'Shipment Arrived',
+const severityStyles: Record<string, string> = {
+  critical: 'border-l-[#E53E3E] text-[#E53E3E]',
+  warning: 'border-l-[#C97B1A] text-[#C97B1A]',
+  success: 'border-l-[#2D6A4F] text-[#2D6A4F]',
+  info: 'border-l-[#2C5282] text-[#2C5282]',
 }
 
-function formatTimestamp(timestamp: string) {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffMinutes = Math.floor(diffMs / (1000 * 60))
-
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`
-  } else if (diffHours < 24) {
-    return `${diffHours}h ago`
-  } else {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-}
-
-function formatFullTimestamp(timestamp: string) {
-  return new Date(timestamp).toLocaleString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+const severityBadge: Record<string, string> = {
+  critical: 'bg-[rgba(229,62,62,0.1)] text-[#E53E3E]',
+  warning: 'bg-[rgba(201,123,26,0.1)] text-[#C97B1A]',
+  success: 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]',
+  info: 'bg-[rgba(44,82,130,0.1)] text-[#2C5282]',
 }
 
 export default function AuditLogPage() {
-  const [actionFilter, setActionFilter] = useState<AuditLogEntry['action'] | 'all'>('all')
-  const [userFilter, setUserFilter] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const limit = 20
 
-  const uniqueUsers = Array.from(new Set(mockAuditLog.map(entry => entry.userName)))
-
-  const filteredLogs = mockAuditLog.filter(entry => {
-    if (actionFilter !== 'all' && entry.action !== actionFilter) return false
-    if (userFilter !== 'all' && entry.userName !== userFilter) return false
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      return (
-        entry.description.toLowerCase().includes(query) ||
-        entry.laneId.toLowerCase().includes(query) ||
-        entry.userName.toLowerCase().includes(query)
-      )
-    }
-    return true
+  const { data, isLoading } = useQuery({
+    queryKey: ['audit', page, search],
+    queryFn: () => getAuditEvents({ page, limit, search: search || undefined }),
   })
 
-  const handleExportCSV = () => {
-    const headers = ['Timestamp', 'User', 'Action', 'Description', 'Lane ID', 'Severity']
-    const rows = filteredLogs.map(entry => [
-      formatFullTimestamp(entry.timestamp),
-      entry.userName,
-      actionLabels[entry.action],
-      entry.description,
-      entry.laneId,
-      entry.severity,
-    ])
-    
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n')
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
+  const events = data?.data ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.ceil(total / limit)
+
+  const handleExport = async () => {
+    const response = await apiClient.get('/api/audit/export', { responseType: 'blob', params: { search: search || undefined } })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
     const a = document.createElement('a')
     a.href = url
-    a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`
+    a.download = 'audit-log.csv'
     a.click()
-    URL.revokeObjectURL(url)
+    window.URL.revokeObjectURL(url)
   }
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex items-start justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[15px] font-medium text-[#F5F5F5]">Audit Log</h1>
-          <p className="text-[13px] text-[#6B6B6B] mt-1">
-            Track all activities and changes across transport lanes
-          </p>
+          <p className="text-[13px] text-[#6B6B6B] mt-1">System-wide event log for compliance and tracking</p>
         </div>
-        <Button 
-          onClick={handleExportCSV} 
-          variant="outline" 
+        <Button
+          onClick={handleExport}
+          variant="outline"
+          size="sm"
           className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
         >
           <Download className="w-3.5 h-3.5" />
@@ -127,156 +65,67 @@ export default function AuditLogPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-[200px] max-w-sm">
-          <Input
-            placeholder="Search logs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 text-[13px] bg-[#111111] border-[#222222] placeholder:text-[#3D3D3D] focus:border-[#2E2E2E]"
-          />
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              Date Range
-              <ChevronDown className="w-3.5 h-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
-            <DropdownMenuItem className="text-[13px]">Today</DropdownMenuItem>
-            <DropdownMenuItem className="text-[13px]">Last 7 days</DropdownMenuItem>
-            <DropdownMenuItem className="text-[13px]">Last 30 days</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
-            >
-              <User className="w-3.5 h-3.5" />
-              {userFilter === 'all' ? 'All Users' : userFilter}
-              <ChevronDown className="w-3.5 h-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
-            <DropdownMenuItem onClick={() => setUserFilter('all')} className="text-[13px]">
-              All Users
-            </DropdownMenuItem>
-            {uniqueUsers.map(user => (
-              <DropdownMenuItem key={user} onClick={() => setUserFilter(user)} className="text-[13px]">
-                {user}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
-            >
-              <Filter className="w-3.5 h-3.5" />
-              {actionFilter === 'all' ? 'All Actions' : actionLabels[actionFilter]}
-              <ChevronDown className="w-3.5 h-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
-            <DropdownMenuItem onClick={() => setActionFilter('all')} className="text-[13px]">
-              All Actions
-            </DropdownMenuItem>
-            {Object.entries(actionLabels).map(([key, label]) => (
-              <DropdownMenuItem 
-                key={key} 
-                onClick={() => setActionFilter(key as AuditLogEntry['action'])}
-                className="text-[13px]"
-              >
-                {label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" />
+        <Input
+          placeholder="Search events..."
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          className="h-9 pl-10 text-[13px] bg-[#111111] border-[#222222] placeholder:text-[#3D3D3D]"
+        />
       </div>
 
-      {/* Timeline */}
       <div className="bg-[#111111] border border-[#222222]">
-        {filteredLogs.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-[13px] text-[#6B6B6B]">No audit log entries found</p>
-          </div>
+        <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
+          <span className="text-[13px] font-medium text-[#F5F5F5]">Events</span>
+          <span className="text-[12px] text-[#6B6B6B]">{total} total</span>
+        </div>
+
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="px-4 py-4 border-b border-[#1A1A1A]">
+              <div className="h-4 w-64 bg-[#1A1A1A] animate-pulse rounded mb-2" />
+              <div className="h-3 w-32 bg-[#1A1A1A] animate-pulse rounded" />
+            </div>
+          ))
+        ) : events.length === 0 ? (
+          <div className="px-4 py-8 text-center text-[13px] text-[#6B6B6B]">No audit events found</div>
         ) : (
-          filteredLogs.map((entry, index) => (
+          events.map((event: AuditEventRow, i: number) => (
             <div
-              key={entry.id}
+              key={event.id}
               className={cn(
-                'flex items-start gap-4 px-4 py-4 border-l-4 hover:bg-[#1A1A1A] transition-colors',
-                entry.severity === 'critical' && 'border-l-[#E53E3E]',
-                entry.severity === 'warning' && 'border-l-[#C97B1A]',
-                entry.severity === 'success' && 'border-l-[#2D6A4F]',
-                entry.severity === 'info' && 'border-l-[#2C5282]',
-                index !== filteredLogs.length - 1 && 'border-b border-[#1A1A1A]'
+                'px-4 py-4 border-l-4',
+                severityStyles[event.severity] ?? 'border-l-[#222222]',
+                i !== events.length - 1 && 'border-b border-[#1A1A1A]',
               )}
             >
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
-                    {actionLabels[entry.action]}
-                  </span>
-                  <span className="text-[11px] text-[#3D3D3D] font-mono">
-                    {entry.laneId}
-                  </span>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={cn('inline-flex px-2 py-0.5 text-[9px] uppercase tracking-[0.06em] rounded-sm', severityBadge[event.severity] || '')}>
+                      {event.severity}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.06em] text-[#6B6B6B]">{event.type.replace('_', ' ')}</span>
+                  </div>
+                  <p className="text-[13px] text-[#F5F5F5]">{event.title}</p>
+                  {event.description && <p className="text-[11px] text-[#6B6B6B] mt-1">{event.description}</p>}
                 </div>
-                <p className="text-[13px] text-[#A0A0A0] mb-2">
-                  {entry.description}
-                </p>
-                <div className="flex items-center gap-4 text-[11px] text-[#3D3D3D]">
-                  <span>{entry.userName}</span>
-                </div>
+                <span className="text-[11px] text-[#3D3D3D] shrink-0 ml-4">{new Date(event.created_at).toLocaleString()}</span>
               </div>
-
-              {/* Timestamp */}
-              <span 
-                className="text-[11px] text-[#3D3D3D] shrink-0"
-                title={formatFullTimestamp(entry.timestamp)}
-              >
-                {formatTimestamp(entry.timestamp)}
-              </span>
             </div>
           ))
         )}
-      </div>
 
-      {/* Pagination info */}
-      <div className="flex items-center justify-between text-[12px] text-[#6B6B6B]">
-        <span>Showing {filteredLogs.length} of {mockAuditLog.length} entries</span>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            disabled 
-            className="h-7 text-[11px] border-[#2E2E2E] bg-transparent"
-          >
-            Previous
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            disabled 
-            className="h-7 text-[11px] border-[#2E2E2E] bg-transparent"
-          >
-            Next
-          </Button>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#1A1A1A]">
+            <span className="text-[12px] text-[#6B6B6B]">Page {page} of {totalPages}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="h-7 text-[11px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">Previous</Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="h-7 text-[11px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">Next</Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
