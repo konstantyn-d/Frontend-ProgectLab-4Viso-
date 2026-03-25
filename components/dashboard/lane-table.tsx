@@ -45,18 +45,23 @@ function getProgressText(lane: LaneRow): string {
 
 export function LaneTable() {
   const [filterMode, setFilterMode] = useState<TransportMode | 'all'>('all')
+  const [page, setPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const limit = 20
 
   const { data, isLoading } = useQuery({
-    queryKey: ['lanes', filterMode],
+    queryKey: ['lanes', filterMode, page],
     queryFn: () =>
       getLanes({
         mode: filterMode === 'all' ? undefined : filterMode,
-        limit: 20,
+        page,
+        limit,
       }),
   })
 
   const lanes = data?.data ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.ceil(total / limit)
 
   return (
     <div className="bg-[#111111] border border-[#222222]">
@@ -221,6 +226,34 @@ export function LaneTable() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[#1A1A1A]">
+          <span className="text-[12px] text-[#6B6B6B]">
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="h-7 text-[11px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="h-7 text-[11px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       <AddLaneModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
