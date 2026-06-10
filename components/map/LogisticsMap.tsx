@@ -393,6 +393,17 @@ export function LogisticsMap({
         const lane = allLanes.find(l => l.id === selectedRef.current)
         if (lane) fitToLanes([lane], { duration: 0 })
       }
+      // Start the shipment animation ONLY after the initial load. Calling
+      // setData on a source every frame keeps style.loaded() false, which
+      // would otherwise prevent the 'load' event from ever firing.
+      startRef.current = performance.now()
+      const tick = (now: number) => {
+        const phase = ((now - startRef.current) % ANIM_DURATION) / ANIM_DURATION
+        const src = map.getSource('lm-shipments') as GeoJSONSource | undefined
+        if (src) src.setData(buildShipmentCollection(visibleLanesRef.current, arcsRef.current, phase))
+        rafRef.current = requestAnimationFrame(tick)
+      }
+      rafRef.current = requestAnimationFrame(tick)
     })
 
     // ---- interactions ----
@@ -465,16 +476,6 @@ export function LogisticsMap({
     map.on('mouseleave', 'lm-endpoint-dot', onMarkerLeave)
     map.on('click', onBgClick)
 
-    // ---- animation loop ----
-    startRef.current = performance.now()
-    const tick = (now: number) => {
-      const phase = ((now - startRef.current) % ANIM_DURATION) / ANIM_DURATION
-      const src = map.getSource('lm-shipments') as GeoJSONSource | undefined
-      if (src) src.setData(buildShipmentCollection(visibleLanesRef.current, arcsRef.current, phase))
-      rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-
     // ---- responsive resize ----
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(containerRef.current)
@@ -540,7 +541,10 @@ export function LogisticsMap({
   // ====================================================================
   return (
     <div className={cn('relative w-full overflow-hidden', className)} style={{ height, background: 'var(--map-bg)' }}>
-      <div ref={containerRef} className="absolute inset-0" />
+      {/* MapLibre forces `.maplibregl-map { position: relative }`, which would
+          override an `absolute inset-0` container and collapse it to 0 height
+          (then `load` never fires). Size it explicitly instead. */}
+      <div ref={containerRef} className="h-full w-full" />
 
       {/* Loading */}
       {!ready && !error && (
