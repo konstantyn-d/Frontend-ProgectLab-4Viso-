@@ -20,51 +20,63 @@ const corridors: CorridorData[] = [
   { corridor: 'APAC - MEA', activeLanes: 3, avgRisk: 15, compliance: 98.4, throughput: '4.1k units', status: 'compliant' },
 ]
 
-const statusBorderColors = {
-  compliant: 'border-l-[#2D6A4F]',
-  warning: 'border-l-[#C97B1A]',
-  deviation: 'border-l-[#E53E3E]',
+const statusBorder = {
+  compliant: 'border-l-[var(--primary)]',
+  warning: 'border-l-[var(--warn)]',
+  deviation: 'border-l-[var(--danger)]',
+}
+
+const statusText = {
+  compliant: 'text-[var(--accent-deep)]',
+  warning: 'text-[var(--warn)]',
+  deviation: 'text-[var(--danger)]',
 }
 
 export function NetworkStatus() {
   return (
-    <div className="bg-card border border-border">
-      {/* Header */}
-      <div className="grid grid-cols-6 px-4 py-3 border-b border-border">
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Corridor</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Active Lanes</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Avg Risk</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Throughput</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Status</span>
+    <div
+      className="border border-border overflow-hidden"
+      style={{ background: 'var(--card)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-1)' }}
+    >
+      {/* Column headers */}
+      <div
+        className="grid grid-cols-6 px-[22px] py-[16px] border-b"
+        style={{ borderColor: 'var(--line-soft)' }}
+      >
+        {['Corridor', 'Active Lanes', 'Avg Risk', 'Compliance', 'Throughput', 'Status'].map(h => (
+          <span key={h} className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: 'var(--muted-foreground)' }}>
+            {h}
+          </span>
+        ))}
       </div>
 
       {/* Rows */}
-      {corridors.map((row, index) => (
-        <div 
+      {corridors.map((row, idx) => (
+        <div
           key={row.corridor}
           className={cn(
-            'grid grid-cols-6 px-4 py-4 border-l-4 items-center',
-            statusBorderColors[row.status],
-            index !== corridors.length - 1 && 'border-b border-border'
+            'grid grid-cols-6 px-[22px] py-[18px] border-l-[3px] items-center transition-colors hover:bg-secondary',
+            statusBorder[row.status],
+            idx !== corridors.length - 1 && 'border-b'
           )}
+          style={{ borderBottomColor: 'var(--line-soft)' }}
         >
-          <span className="text-[13px] text-foreground font-mono">{row.corridor}</span>
-          <span className="text-[13px] text-[var(--text-body)]">{row.activeLanes}</span>
-          <span className={cn(
-            'text-[13px]',
-            row.avgRisk > 60 ? 'text-[#E53E3E]' : 'text-[var(--text-body)]'
-          )}>
+          <span className="font-mono text-[13.5px] font-medium text-foreground">{row.corridor}</span>
+          <span className="text-[13.5px]" style={{ color: 'var(--text-body)' }}>{row.activeLanes}</span>
+          <span className={cn('text-[13.5px]', row.avgRisk > 60 ? 'text-[var(--danger)]' : '')} style={row.avgRisk <= 60 ? { color: 'var(--text-body)' } : {}}>
             {row.avgRisk}%
           </span>
-          <span className="text-[13px] text-[var(--text-body)]">{row.compliance}%</span>
-          <span className="text-[13px] text-[var(--text-body)]">{row.throughput}</span>
-          <span className={cn(
-            'text-[10px] uppercase tracking-[0.08em]',
-            row.status === 'compliant' && 'text-[#2D6A4F]',
-            row.status === 'warning' && 'text-[#C97B1A]',
-            row.status === 'deviation' && 'text-[#E53E3E]'
-          )}>
+          <div>
+            <span className="text-[13.5px]" style={{ color: 'var(--text-body)' }}>{row.compliance}%</span>
+            <div className="h-[4px] rounded-full mt-1.5 max-w-[90px] overflow-hidden" style={{ background: 'var(--secondary)' }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${row.compliance}%`, background: 'var(--primary)' }}
+              />
+            </div>
+          </div>
+          <span className="text-[13.5px]" style={{ color: 'var(--text-body)' }}>{row.throughput}</span>
+          <span className={cn('font-mono text-[10px] uppercase tracking-[0.08em]', statusText[row.status])}>
             {row.status}
           </span>
         </div>

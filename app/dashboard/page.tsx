@@ -5,15 +5,48 @@ import { LaneTable } from '@/components/dashboard/lane-table'
 import { LiveIndicator } from '@/components/dashboard/live-indicator'
 import { NetworkStatus } from '@/components/dashboard/network-status'
 
+function PanelHead({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 px-[22px] py-[18px] border-b" style={{ borderColor: 'var(--line-soft)' }}>
+      <div>
+        <h2
+          className="text-[16px] leading-none tracking-[-0.02em]"
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--foreground)', margin: 0 }}
+        >
+          {title}
+        </h2>
+        {sub && <p className="text-[12.5px] mt-[3px]" style={{ color: 'var(--muted-foreground)' }}>{sub}</p>}
+      </div>
+      {right}
+    </div>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <span className="font-mono text-[10.5px] uppercase tracking-[0.16em]" style={{ color: 'var(--muted-foreground)' }}>
+        {children}
+      </span>
+      <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-[18px]">
       {/* Page Header */}
-      <div className="flex items-start justify-between gap-6 flex-wrap">
+      <div className="flex items-start justify-between gap-6 flex-wrap mb-[30px]">
         <div>
-          <h1 className="text-[20px] font-medium text-foreground">Dashboard</h1>
-          <p className="text-[14px] text-muted-foreground mt-1">
-            Real-time overview of pharmaceutical transport lanes
+          <h1
+            className="leading-none tracking-[-0.04em]"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--foreground)', margin: 0 }}
+          >
+            Dashboard
+          </h1>
+          <p className="text-[15px] mt-3" style={{ color: 'var(--muted-foreground)', maxWidth: 540 }}>
+            Real-time overview of pharmaceutical transport lanes and cold-chain integrity.
           </p>
         </div>
         <LiveIndicator />
@@ -23,41 +56,49 @@ export default function DashboardPage() {
       <KPICards />
 
       {/* Map + Weather Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-card border border-border">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Global Network Map</h2>
-            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-px bg-[#10B981]" />
-                Compliant
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-px bg-[#C97B1A]" />
-                Warning
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-px bg-[#E53E3E]" />
-                High Risk
-              </span>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[18px]">
+        {/* World Map */}
+        <div
+          className="lg:col-span-2 border border-border overflow-hidden"
+          style={{ background: 'var(--card)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-1)' }}
+        >
+          <PanelHead
+            title="Global Network Map"
+            sub={`Live cold-chain routes`}
+            right={
+              <div className="flex items-center gap-4 text-[11.5px]" style={{ color: 'var(--muted-foreground)' }}>
+                <span className="flex items-center gap-[7px]">
+                  <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--primary)' }} />
+                  Compliant
+                </span>
+                <span className="flex items-center gap-[7px]">
+                  <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--warn)' }} />
+                  Warning
+                </span>
+                <span className="flex items-center gap-[7px]">
+                  <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--danger)' }} />
+                  High Risk
+                </span>
+              </div>
+            }
+          />
           <div className="h-[440px]">
             <WorldMap />
           </div>
         </div>
+
         <WeatherAlerts />
       </div>
 
       {/* Network Status */}
       <div>
-        <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-4">Network Status by Corridor</h2>
+        <SectionLabel>Network Status by Corridor</SectionLabel>
         <NetworkStatus />
       </div>
 
       {/* Lane Table */}
       <div>
-        <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-4">Active Transport Lanes</h2>
+        <SectionLabel>Active Transport Lanes</SectionLabel>
         <LaneTable />
       </div>
     </div>

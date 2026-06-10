@@ -9,9 +9,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-56">
+      <div className="flex-1 flex flex-col ml-[248px] min-w-0">
         <Header />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 overflow-auto" style={{ padding: '34px 32px 72px' }}>
           {children}
         </main>
       </div>

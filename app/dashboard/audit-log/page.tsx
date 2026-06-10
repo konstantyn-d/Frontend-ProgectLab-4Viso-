@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { mockAuditLog, type AuditLogEntry } from '@/lib/mock-data'
@@ -208,7 +208,7 @@ export default function AuditLogPage() {
       </div>
 
       {/* Timeline */}
-      <div className="bg-card border border-border">
+      <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
         {filteredLogs.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-[13px] text-muted-foreground">No audit log entries found</p>
@@ -219,8 +219,8 @@ export default function AuditLogPage() {
               key={entry.id}
               className={cn(
                 'flex items-start gap-4 px-4 py-4 border-l-4 hover:bg-secondary transition-colors',
-                entry.severity === 'critical' && 'border-l-[#E53E3E]',
-                entry.severity === 'warning' && 'border-l-[#C97B1A]',
+                entry.severity === 'critical' && 'border-l-[var(--danger)]',
+                entry.severity === 'warning' && 'border-l-[var(--warn)]',
                 entry.severity === 'success' && 'border-l-[#2D6A4F]',
                 entry.severity === 'info' && 'border-l-[#2C5282]',
                 index !== filteredLogs.length - 1 && 'border-b border-border'
@@ -281,3 +281,4 @@ export default function AuditLogPage() {
     </div>
   )
 }
+

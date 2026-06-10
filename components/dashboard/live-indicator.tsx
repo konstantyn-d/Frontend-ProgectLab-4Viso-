@@ -13,13 +13,19 @@ export function LiveIndicator() {
   }, [])
 
   return (
-    <div className="inline-flex items-center gap-2">
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-60 live-pulse-dot" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#10B981]" />
+    <div
+      className="inline-flex items-center gap-2.5 h-[30px] px-[14px] rounded-full border font-mono text-[10px] uppercase tracking-[0.07em]"
+      style={{
+        background: 'var(--accent-wash)',
+        borderColor: 'var(--accent-line)',
+        color: 'var(--accent-deep)',
+      }}
+    >
+      <span className="pulse-dot" style={{ color: 'var(--primary)' }} />
+      Live
+      <span className="normal-case tracking-normal" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-sans)', letterSpacing: 0 }}>
+        · updated {seconds}s ago
       </span>
-      <span className="text-[10px] uppercase tracking-[0.08em] text-[#10B981]">Live</span>
-      <span className="text-[10px] text-muted-foreground">Updated {seconds}s ago</span>
     </div>
   )
 }

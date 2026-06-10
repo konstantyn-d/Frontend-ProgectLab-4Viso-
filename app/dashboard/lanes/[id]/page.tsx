@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -48,10 +48,10 @@ const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 function eventSeverityConfig(severity: 'info' | 'success' | 'warning' | 'critical') {
   return {
-    info: { color: '#3B82F6', icon: <Clock className="w-3.5 h-3.5" strokeWidth={1.5} /> },
-    success: { color: '#10B981', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> },
-    warning: { color: '#C97B1A', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
-    critical: { color: '#E53E3E', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
+    info: { color: 'var(--info-c)', icon: <Clock className="w-3.5 h-3.5" strokeWidth={1.5} /> },
+    success: { color: 'var(--primary)', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> },
+    warning: { color: 'var(--warn)', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
+    critical: { color: 'var(--danger)', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
   }[severity]
 }
 
@@ -211,26 +211,26 @@ export default function LaneDetailPage() {
                   <MapLine
                     from={[originPort.lng, originPort.lat]}
                     to={[destPort.lng, destPort.lat]}
-                    stroke={lane.tempDeviation ? '#E53E3E' : '#10B981'}
+                    stroke={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'}
                     strokeWidth={1.5}
                     strokeOpacity={0.7}
                     strokeLinecap="round"
                   />
                   <Marker coordinates={[originPort.lng, originPort.lat]}>
-                    <circle r={3} fill="#10B981" stroke="#0A0A0A" strokeWidth={0.8} />
+                    <circle r={3} fill="var(--primary)" stroke="#0A0A0A" strokeWidth={0.8} />
                     <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: '#A0A0A0' }}>{originPort.code}</text>
                   </Marker>
                   <Marker coordinates={[destPort.lng, destPort.lat]}>
-                    <circle r={3} fill="#10B981" stroke="#0A0A0A" strokeWidth={0.8} />
+                    <circle r={3} fill="var(--primary)" stroke="#0A0A0A" strokeWidth={0.8} />
                     <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: '#A0A0A0' }}>{destPort.code}</text>
                   </Marker>
                   {currentPosition && lane.status !== 'arrived' && (
                     <Marker coordinates={[currentPosition.lng, currentPosition.lat]}>
-                      <circle r={3} fill="none" stroke={lane.tempDeviation ? '#E53E3E' : '#10B981'} strokeWidth={1}>
+                      <circle r={3} fill="none" stroke={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'} strokeWidth={1}>
                         <animate attributeName="r" from="3" to="12" dur="1.5s" repeatCount="indefinite" />
                         <animate attributeName="opacity" from="0.7" to="0" dur="1.5s" repeatCount="indefinite" />
                       </circle>
-                      <circle r={3} fill={lane.tempDeviation ? '#E53E3E' : '#10B981'} stroke="#0A0A0A" strokeWidth={0.8} />
+                      <circle r={3} fill={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'} stroke="#0A0A0A" strokeWidth={0.8} />
                     </Marker>
                   )}
                 </>
@@ -258,17 +258,17 @@ export default function LaneDetailPage() {
               <ComposedChart data={tempHistory}>
                 <defs>
                   <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10B981" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 2" stroke="#1A1A1A" vertical={false} />
                 <XAxis dataKey="time" stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={{ stroke: '#222222' }} tickLine={false} interval="preserveStartEnd" minTickGap={40} />
                 <YAxis domain={['dataMin - 2', 'dataMax + 2']} stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: '#0A0A0A', border: '1px solid #222222', fontSize: 12 }} labelStyle={{ color: '#6B6B6B' }} />
-                <ReferenceLine y={lane.tempMax} stroke="#E53E3E" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Max ${lane.tempMax}°`, fill: '#E53E3E', fontSize: 9, position: 'right' }} />
-                <ReferenceLine y={lane.tempMin} stroke="#3B82F6" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Min ${lane.tempMin}°`, fill: '#3B82F6', fontSize: 9, position: 'right' }} />
-                <Area type="monotone" dataKey="temp" stroke="#10B981" strokeWidth={1.5} fill="url(#tempGrad)" />
+                <ReferenceLine y={lane.tempMax} stroke="var(--danger)" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Max ${lane.tempMax}°`, fill: 'var(--danger)', fontSize: 9, position: 'right' }} />
+                <ReferenceLine y={lane.tempMin} stroke="var(--info-c)" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Min ${lane.tempMin}°`, fill: 'var(--info-c)', fontSize: 9, position: 'right' }} />
+                <Area type="monotone" dataKey="temp" stroke="var(--primary)" strokeWidth={1.5} fill="url(#tempGrad)" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>

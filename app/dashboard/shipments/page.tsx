@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo } from 'react'
 import { mockShipments, shipmentFlow, type Shipment } from '@/lib/mock-data'
@@ -26,19 +26,19 @@ import { Search, Filter, ChevronDown, Thermometer, MapPin, Clock, Download, User
 
 function ShipmentStatusBadge({ status }: { status: Shipment['status'] }) {
   const config = {
-    'in-transit': { label: 'IN TRANSIT', className: 'border border-[#3B82F6] text-[#3B82F6]', dot: true },
+    'in-transit': { label: 'IN TRANSIT', className: 'border border-[var(--info-c)] text-[var(--info-c)]', dot: true },
     customs: { label: 'CUSTOMS', className: 'border border-[#8B5CF6] text-[#8B5CF6]', dot: false },
     arrived: { label: 'ARRIVED', className: 'bg-[#10B981] text-[#0A0A0A]', dot: false },
-    delayed: { label: 'DELAYED', className: 'bg-[#E53E3E] text-white danger-glow', dot: false },
-    loading: { label: 'LOADING', className: 'border border-[#C97B1A] text-[#C97B1A]', dot: false },
+    delayed: { label: 'DELAYED', className: 'bg-[var(--danger)] text-white danger-glow', dot: false },
+    loading: { label: 'LOADING', className: 'border border-[var(--warn)] text-[var(--warn)]', dot: false },
   }[status]
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] uppercase tracking-[0.06em] rounded-sm font-medium', config.className)}>
       {config.dot && (
         <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-[#3B82F6] opacity-70 live-pulse-dot" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3B82F6]" />
+          <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--info-c)] opacity-70 live-pulse-dot" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--info-c)]" />
         </span>
       )}
       {config.label}
@@ -53,9 +53,9 @@ export default function ShipmentsPage() {
 
   const stats = [
     { label: 'Active Shipments', value: String(mockShipments.length), color: 'var(--foreground)' },
-    { label: 'In Transit', value: String(mockShipments.filter(s => s.status === 'in-transit').length), color: '#3B82F6' },
-    { label: 'Delivered Today', value: String(mockShipments.filter(s => s.status === 'arrived').length), color: '#10B981' },
-    { label: 'Delayed', value: String(mockShipments.filter(s => s.status === 'delayed').length), color: '#E53E3E' },
+    { label: 'In Transit', value: String(mockShipments.filter(s => s.status === 'in-transit').length), color: 'var(--info-c)' },
+    { label: 'Delivered Today', value: String(mockShipments.filter(s => s.status === 'arrived').length), color: 'var(--primary)' },
+    { label: 'Delayed', value: String(mockShipments.filter(s => s.status === 'delayed').length), color: 'var(--danger)' },
   ]
 
   const filtered = useMemo(() => {
@@ -89,7 +89,7 @@ export default function ShipmentsPage() {
       </div>
 
       {/* Timeline chart */}
-      <div className="bg-card border border-border">
+      <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
         <div className="px-4 py-3 border-b border-border">
           <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Today&apos;s Shipment Flow</h2>
           <p className="text-[12px] text-[var(--text-muted)] mt-1">Hourly departures vs arrivals</p>
@@ -117,15 +117,15 @@ export default function ShipmentsPage() {
                 cursor={{ fill: 'rgba(16,185,129,0.05)' }}
               />
               <Legend wrapperStyle={{ fontSize: 11, color: 'var(--muted-foreground)' }} iconType="square" />
-              <Bar dataKey="departures" name="Departures" fill="#10B981" />
-              <Bar dataKey="arrivals" name="Arrivals" fill="#3B82F6" />
+              <Bar dataKey="departures" name="Departures" fill="var(--primary)" />
+              <Bar dataKey="arrivals" name="Arrivals" fill="var(--info-c)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Shipments table */}
-      <div className="bg-card border border-border">
+      <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border">
           <div className="flex items-center gap-3 flex-1">
             <div className="relative w-72">
@@ -191,7 +191,7 @@ export default function ShipmentsPage() {
                     <td className="px-4 text-[12px] text-[var(--text-body)]">{s.carrier}</td>
                     <td className="px-4 text-[12px] text-[var(--text-body)]">{s.currentLocation}</td>
                     <td className="px-4 text-[12px]">
-                      <span className={cn('font-mono', deviation ? 'text-[#E53E3E]' : 'text-[#10B981]')}>
+                      <span className={cn('font-mono', deviation ? 'text-[var(--danger)]' : 'text-[#10B981]')}>
                         {s.lastTemp}°C
                       </span>
                     </td>
@@ -245,7 +245,7 @@ export default function ShipmentsPage() {
                     <div className="flex-1">
                       <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Temperature</p>
                       <div className="flex items-baseline gap-2">
-                        <span className={cn('text-[20px] font-light', selected.lastTemp > selected.tempMax || selected.lastTemp < selected.tempMin ? 'text-[#E53E3E]' : 'text-[#10B981]')}>
+                        <span className={cn('text-[20px] font-light', selected.lastTemp > selected.tempMax || selected.lastTemp < selected.tempMin ? 'text-[var(--danger)]' : 'text-[#10B981]')}>
                           {selected.lastTemp}°C
                         </span>
                         <span className="text-[12px] text-muted-foreground">range {selected.tempMin}–{selected.tempMax}°C</span>
@@ -314,3 +314,4 @@ export default function ShipmentsPage() {
     </div>
   )
 }
+

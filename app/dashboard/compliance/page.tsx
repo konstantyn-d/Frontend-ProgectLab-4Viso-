@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { mockAudits, regionCompliance, complianceTrend, type Audit } from '@/lib/mock-data'
@@ -23,20 +23,20 @@ const statusConfig: Record<Audit['status'], {
   color: string
   bg: string
 }> = {
-  passed: { label: 'PASSED', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} />, color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
-  warnings: { label: 'WARNINGS', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />, color: '#C97B1A', bg: 'rgba(201,123,26,0.1)' },
-  failed: { label: 'FAILED', icon: <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />, color: '#E53E3E', bg: 'rgba(229,62,62,0.1)' },
-  'in-progress': { label: 'IN PROGRESS', icon: <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} />, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
+  passed: { label: 'PASSED', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} />, color: 'var(--primary)', bg: 'rgba(16,185,129,0.1)' },
+  warnings: { label: 'WARNINGS', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />, color: 'var(--warn)', bg: 'rgba(201,123,26,0.1)' },
+  failed: { label: 'FAILED', icon: <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />, color: 'var(--danger)', bg: 'rgba(229,62,62,0.1)' },
+  'in-progress': { label: 'IN PROGRESS', icon: <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} />, color: 'var(--info-c)', bg: 'rgba(59,130,246,0.1)' },
 }
 
 export default function CompliancePage() {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const metrics = [
-    { label: 'GDP Compliance Rate', value: '94.2', suffix: '%', delta: '+1.8%', deltaColor: '#10B981' },
+    { label: 'GDP Compliance Rate', value: '94.2', suffix: '%', delta: '+1.8%', deltaColor: 'var(--primary)' },
     { label: 'Audits Completed', value: '48', delta: 'This month', deltaColor: 'var(--muted-foreground)' },
-    { label: 'Open Issues', value: '3', delta: '-2 from last week', deltaColor: '#10B981' },
-    { label: 'Pass Rate (90d)', value: '92', suffix: '%', delta: '+0.4%', deltaColor: '#10B981' },
+    { label: 'Open Issues', value: '3', delta: '-2 from last week', deltaColor: 'var(--primary)' },
+    { label: 'Pass Rate (90d)', value: '92', suffix: '%', delta: '+0.4%', deltaColor: 'var(--primary)' },
   ]
 
   return (
@@ -63,7 +63,7 @@ export default function CompliancePage() {
       </div>
 
       {/* Compliance trend - 12 weeks */}
-      <div className="bg-card border border-border">
+      <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance Trend</h2>
@@ -79,15 +79,15 @@ export default function CompliancePage() {
             <AreaChart data={complianceTrend}>
               <defs>
                 <linearGradient id="cmpGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="2 2" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="week" stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
               <YAxis domain={[88, 96]} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--background)', border: '1px solid var(--border)', fontSize: 12 }} labelStyle={{ color: 'var(--muted-foreground)' }} />
-              <Area type="monotone" dataKey="rate" stroke="#10B981" strokeWidth={1.5} fill="url(#cmpGradient)" />
+              <Area type="monotone" dataKey="rate" stroke="var(--primary)" strokeWidth={1.5} fill="url(#cmpGradient)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -95,7 +95,7 @@ export default function CompliancePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Compliance by Region */}
-        <div className="bg-card border border-border">
+        <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
           <div className="px-4 py-3 border-b border-border">
             <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance by Region</h2>
             <p className="text-[12px] text-[var(--text-muted)] mt-1">Distribution of lane compliance levels</p>
@@ -108,16 +108,16 @@ export default function CompliancePage() {
                 <YAxis dataKey="region" type="category" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-body)' }} axisLine={false} tickLine={false} width={80} />
                 <Tooltip contentStyle={{ background: 'var(--background)', border: '1px solid var(--border)', fontSize: 12 }} labelStyle={{ color: 'var(--muted-foreground)' }} cursor={{ fill: 'rgba(16,185,129,0.05)' }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="square" />
-                <Bar dataKey="compliant" name="Compliant" stackId="a" fill="#10B981" />
-                <Bar dataKey="warning" name="Warning" stackId="a" fill="#C97B1A" />
-                <Bar dataKey="deviation" name="Deviation" stackId="a" fill="#E53E3E" />
+                <Bar dataKey="compliant" name="Compliant" stackId="a" fill="var(--primary)" />
+                <Bar dataKey="warning" name="Warning" stackId="a" fill="var(--warn)" />
+                <Bar dataKey="deviation" name="Deviation" stackId="a" fill="var(--danger)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Recent Audits Timeline */}
-        <div className="bg-card border border-border">
+        <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
           <div className="px-4 py-3 border-b border-border">
             <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Recent Audits</h2>
             <p className="text-[12px] text-[var(--text-muted)] mt-1">Last {mockAudits.length} audits</p>
@@ -195,3 +195,4 @@ export default function CompliancePage() {
     </div>
   )
 }
+

@@ -1,64 +1,127 @@
 'use client'
 
 import { dashboardStats, sparklines } from '@/lib/mock-data'
-import { Line, LineChart, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Route, ShieldCheck, Thermometer, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+/* Minimal SVG sparkline — no chart library overhead */
+function Sparkline({ data, color = 'var(--primary)' }: { data: number[]; color?: string }) {
+  const W = 92, H = 40, pad = 3
+  const min = Math.min(...data), max = Math.max(...data)
+  const span = max - min || 1
+  const pts = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (W - pad * 2)
+    const y = pad + (1 - (v - min) / span) * (H - pad * 2)
+    return [x, y]
+  })
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ')
+  const area = `${line} L${pts[pts.length - 1][0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`
+  const gid = `sg${Math.round((min + max + data.length) * 97) % 99999}`
+  const last = pts[pts.length - 1]
+
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={last[0]} cy={last[1]} r="2.2" fill={color} />
+    </svg>
+  )
+}
+
 interface KPICardProps {
+  icon: React.ReactNode
+  iconVariant?: 'accent' | 'warn' | 'danger'
   title: string
   value: string | number
   suffix?: string
   trend?: number
   trendLabel?: string
   sparkData: number[]
-  sparkColor: string
+  sparkColor?: string
   invertTrend?: boolean
 }
 
-function KPICard({ title, value, suffix, trend, trendLabel, sparkData, sparkColor, invertTrend }: KPICardProps) {
+function KPICard({ icon, iconVariant = 'accent', title, value, suffix, trend, trendLabel, sparkData, sparkColor, invertTrend }: KPICardProps) {
   const isPositive = trend !== undefined ? (invertTrend ? trend < 0 : trend > 0) : false
   const isNegative = trend !== undefined ? (invertTrend ? trend > 0 : trend < 0) : false
-  const trendColor = isPositive ? 'text-[#10B981]' : isNegative ? 'text-[#E53E3E]' : 'text-muted-foreground'
   const TrendIcon = trend === undefined ? null : trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : Minus
 
-  const chartData = sparkData.map((v, i) => ({ i, v }))
+  const iconBg = {
+    accent: 'var(--accent-wash)',
+    warn: 'var(--warn-bg)',
+    danger: 'var(--danger-bg)',
+  }[iconVariant]
+
+  const iconColor = {
+    accent: 'var(--accent-deep)',
+    warn: 'var(--warn)',
+    danger: 'var(--danger)',
+  }[iconVariant]
+
+  const spark = sparkColor ?? (iconVariant === 'accent' ? 'var(--primary)' : iconVariant === 'warn' ? 'var(--warn)' : 'var(--danger)')
 
   return (
-    <div className="bg-card border border-border p-5 hover:border-[var(--border-hover)] transition-colors">
-      <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground mb-3">{title}</p>
+    <div
+      className="relative overflow-hidden border border-border transition-all duration-300 hover:-translate-y-1 group"
+      style={{
+        background: 'var(--card)',
+        borderRadius: 'var(--r-lg)',
+        padding: 24,
+        boxShadow: 'var(--shadow-1)',
+      }}
+    >
+      {/* Hover blob */}
+      <div
+        className="absolute right-[-40px] bottom-[-50px] w-[150px] h-[150px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: spark, filter: 'blur(46px)' }}
+      />
 
-      <div className="flex items-end justify-between gap-3">
+      {/* Top row */}
+      <div className="flex items-center justify-between mb-[18px] relative">
+        <p
+          className="font-mono text-[10.5px] uppercase tracking-[0.12em]"
+          style={{ color: 'var(--muted-foreground)' }}
+        >
+          {title}
+        </p>
+        <div
+          className="w-[34px] h-[34px] flex items-center justify-center rounded-[10px]"
+          style={{ background: iconBg, color: iconColor }}
+        >
+          {icon}
+        </div>
+      </div>
+
+      {/* Value row */}
+      <div className="flex items-end justify-between gap-3 relative">
         <div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-[32px] font-light text-foreground leading-none">{value}</span>
-            {suffix && <span className="text-[14px] text-muted-foreground">{suffix}</span>}
+          <div
+            className="flex items-baseline gap-1 leading-none"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 700, letterSpacing: '-0.04em' }}
+          >
+            <span className="text-[52px] text-foreground">{value}</span>
+            {suffix && <span className="text-[22px]" style={{ color: 'var(--muted-foreground)' }}>{suffix}</span>}
           </div>
-          {trend !== undefined && TrendIcon && (
-            <div className={cn('flex items-center gap-1 mt-2 text-[12px]', trendColor)}>
-              <TrendIcon className="w-3 h-3" strokeWidth={1.5} />
-              <span>{Math.abs(trend).toFixed(1)}%</span>
-              <span className="text-[var(--text-muted)]">{trendLabel}</span>
+
+          {trend !== undefined && TrendIcon ? (
+            <div className={cn('flex items-center gap-1.5 mt-[14px] text-[12.5px] font-medium', isPositive ? 'text-[var(--accent-deep)]' : isNegative ? 'text-[var(--danger)]' : 'text-muted-foreground')}>
+              <TrendIcon className="w-[14px] h-[14px]" strokeWidth={1.5} />
+              <span className="font-[var(--font-mono)]">{Math.abs(trend).toFixed(1)}%</span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{trendLabel}</span>
             </div>
-          )}
-          {trend === undefined && trendLabel && (
-            <p className="text-[12px] text-[var(--text-muted)] mt-2">{trendLabel}</p>
-          )}
+          ) : trendLabel ? (
+            <p className="text-[12.5px] mt-[14px]" style={{ color: 'var(--muted-foreground)' }}>{trendLabel}</p>
+          ) : null}
         </div>
 
-        <div className="w-[88px] h-[36px] shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 4, right: 2, bottom: 4, left: 2 }}>
-              <Line
-                type="monotone"
-                dataKey="v"
-                stroke={sparkColor}
-                strokeWidth={1.5}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="w-[92px] h-[40px] shrink-0">
+          <Sparkline data={sparkData} color={spark} />
         </div>
       </div>
     </div>
@@ -67,39 +130,41 @@ function KPICard({ title, value, suffix, trend, trendLabel, sparkData, sparkColo
 
 export function KPICards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[18px] reveal-stagger">
       <KPICard
+        icon={<Route className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         title="Active Lanes"
         value={dashboardStats.activeLanes}
         trend={dashboardStats.activeLanesTrend}
         trendLabel="vs last week"
         sparkData={sparklines.activeLanes}
-        sparkColor="#10B981"
       />
       <KPICard
+        icon={<ShieldCheck className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         title="GDP Compliant"
         value={dashboardStats.gdpCompliant}
         suffix="%"
         trend={dashboardStats.gdpCompliantTrend}
         trendLabel="vs last week"
         sparkData={sparklines.gdpCompliant}
-        sparkColor="#10B981"
       />
       <KPICard
-        title="Temperature Deviations"
+        icon={<Thermometer className="w-[17px] h-[17px]" strokeWidth={1.6} />}
+        iconVariant="danger"
+        title="Temp Deviations"
         value={dashboardStats.temperatureDeviations}
         trend={dashboardStats.temperatureDeviationsTrend}
         trendLabel="vs last week"
         sparkData={sparklines.tempDeviations}
-        sparkColor="#E53E3E"
         invertTrend
       />
       <KPICard
+        icon={<AlertTriangle className="w-[17px] h-[17px]" strokeWidth={1.6} />}
+        iconVariant="warn"
         title="High Risk Lanes"
         value={dashboardStats.highRiskLanes}
         trendLabel="Requires attention"
         sparkData={sparklines.highRiskLanes}
-        sparkColor="#C97B1A"
       />
     </div>
   )

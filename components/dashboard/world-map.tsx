@@ -82,7 +82,7 @@ export function WorldMap() {
           lane,
           originCoords: [origin.lng, origin.lat] as [number, number],
           destCoords: [dest.lng, dest.lat] as [number, number],
-          stroke: highRisk ? '#E53E3E' : compliant ? '#10B981' : '#C97B1A',
+          stroke: highRisk ? 'var(--danger)' : compliant ? 'var(--primary)' : 'var(--warn)',
           highRisk,
         }
       })
@@ -115,32 +115,27 @@ export function WorldMap() {
   const markerScale = 1 / position.zoom
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-[var(--map-bg)]">
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden" style={{ background: 'var(--map-bg)' }}>
       {/* Floating zoom controls */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1">
-        <button
-          onClick={handleZoomIn}
-          disabled={position.zoom >= MAX_ZOOM}
-          aria-label="Zoom in"
-          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <Plus size={14} strokeWidth={1.5} />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          disabled={position.zoom <= MIN_ZOOM}
-          aria-label="Zoom out"
-          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <Minus size={14} strokeWidth={1.5} />
-        </button>
-        <button
-          onClick={handleReset}
-          aria-label="Reset view"
-          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 transition-colors"
-        >
-          <Home size={14} strokeWidth={1.5} />
-        </button>
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+        {[
+          { onClick: handleZoomIn, disabled: position.zoom >= MAX_ZOOM, label: 'Zoom in', icon: <Plus size={13} strokeWidth={1.5} /> },
+          { onClick: handleZoomOut, disabled: position.zoom <= MIN_ZOOM, label: 'Zoom out', icon: <Minus size={13} strokeWidth={1.5} /> },
+          { onClick: handleReset, disabled: false, label: 'Reset view', icon: <Home size={13} strokeWidth={1.5} /> },
+        ].map(btn => (
+          <button
+            key={btn.label}
+            onClick={btn.onClick}
+            disabled={btn.disabled}
+            aria-label={btn.label}
+            className="w-7 h-7 flex items-center justify-center rounded-[var(--r-sm)] transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed hover:-translate-y-px"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
+            onMouseEnter={e => { if (!btn.disabled) { (e.currentTarget as HTMLElement).style.color = 'var(--accent-deep)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-line)' } }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
+          >
+            {btn.icon}
+          </button>
+        ))}
       </div>
 
       <ComposableMap
@@ -212,7 +207,7 @@ export function WorldMap() {
           {/* Endpoint markers with inverse scale to maintain constant size */}
           {endpointPorts.map(port => {
             const isHighRisk = highRiskCodes.has(port.code)
-            const color = isHighRisk ? '#E53E3E' : '#10B981'
+            const color = isHighRisk ? 'var(--danger)' : 'var(--primary)'
             return (
               <Marker key={port.code} coordinates={[port.lng, port.lat]}>
                 <g transform={`scale(${markerScale})`}>
@@ -246,10 +241,14 @@ export function WorldMap() {
       {/* Tooltip */}
       {hoveredLane && tooltipPos && (
         <div
-          className="fixed pointer-events-none z-50 bg-background border border-[var(--border-hover)] p-3 min-w-[200px]"
+          className="fixed pointer-events-none z-50 p-3 min-w-[200px]"
           style={{
-            left: tooltipPos.x + 12,
-            top: tooltipPos.y + 12,
+            left: tooltipPos.x + 14,
+            top: tooltipPos.y + 14,
+            background: 'var(--card)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-md)',
+            boxShadow: 'var(--shadow-2)',
           }}
         >
           <div className="flex items-center justify-between mb-2">
