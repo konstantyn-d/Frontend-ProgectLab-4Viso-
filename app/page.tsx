@@ -2,20 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Eye, EyeOff, Building2 } from 'lucide-react'
 import { useTheme } from '@/lib/theme-context'
 import { Sun, Moon } from 'lucide-react'
-
-function BrandMark() {
-  return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <circle cx="6.5" cy="17.5" r="2.4" fill="currentColor" stroke="none" />
-      <circle cx="17.5" cy="6.5" r="2.4" fill="none" />
-      <path d="M8.6 15.4 15.4 8.6" />
-      <path d="M6.5 9.5V6.5h3" opacity="0.55" />
-    </svg>
-  )
-}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('s.chen@4viso.com')
@@ -80,9 +70,9 @@ export default function LoginPage() {
         <div className="relative z-10 flex items-center gap-3">
           <div
             className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center"
-            style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 6px 16px -6px rgba(16,185,129,0.55)' }}
+            style={{ background: 'var(--primary)', boxShadow: '0 6px 16px -6px rgba(16,185,129,0.55)' }}
           >
-            <BrandMark />
+            <Image src="/4viso-logo.png" alt="4Viso" width={22} height={22} className="object-contain" />
           </div>
           <div>
             <div
@@ -145,9 +135,9 @@ export default function LoginPage() {
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div
               className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center"
-              style={{ background: 'var(--primary)', color: 'var(--on-accent)' }}
+              style={{ background: 'var(--primary)' }}
             >
-              <BrandMark />
+              <Image src="/4viso-logo.png" alt="4Viso" width={22} height={22} className="object-contain" />
             </div>
             <div
               className="text-[17px] leading-none tracking-[-0.03em] text-foreground"

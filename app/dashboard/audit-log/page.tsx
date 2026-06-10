@@ -111,10 +111,10 @@ export default function AuditLogPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-[15px] font-medium text-foreground">Audit Log</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Track all activities and changes across transport lanes
+        <div className="mb-[30px]">
+          <h1 className="leading-none tracking-[-0.04em]" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--foreground)', margin: 0 }}>Audit Log</h1>
+          <p className="text-[15px] mt-3" style={{ color: 'var(--muted-foreground)' }}>
+            Track all activities and changes across transport lanes.
           </p>
         </div>
         <Button 

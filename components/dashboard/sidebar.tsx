@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -24,17 +25,6 @@ const navOperations = [
 const navAccount = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
-
-function BrandMark() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <circle cx="6.5" cy="17.5" r="2.4" fill="currentColor" stroke="none" />
-      <circle cx="17.5" cy="6.5" r="2.4" fill="none" />
-      <path d="M8.6 15.4 15.4 8.6" />
-      <path d="M6.5 9.5V6.5h3" opacity="0.55" />
-    </svg>
-  )
-}
 
 function NavSection({ label, items }: { label: string; items: typeof navOperations }) {
   const pathname = usePathname()
@@ -88,11 +78,10 @@ export function Sidebar() {
           className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0"
           style={{
             background: 'var(--primary)',
-            color: 'var(--on-accent)',
             boxShadow: '0 6px 16px -6px rgba(16,185,129,0.55)',
           }}
         >
-          <BrandMark />
+          <Image src="/4viso-logo.png" alt="4Viso" width={22} height={22} className="object-contain" />
         </div>
         <div>
           <div

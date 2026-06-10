@@ -28,7 +28,7 @@ function ShipmentStatusBadge({ status }: { status: Shipment['status'] }) {
   const config = {
     'in-transit': { label: 'IN TRANSIT', className: 'border border-[var(--info-c)] text-[var(--info-c)]', dot: true },
     customs: { label: 'CUSTOMS', className: 'border border-[#8B5CF6] text-[#8B5CF6]', dot: false },
-    arrived: { label: 'ARRIVED', className: 'bg-[#10B981] text-[#0A0A0A]', dot: false },
+    arrived: { label: 'ARRIVED', className: 'bg-[var(--primary)] text-[var(--on-accent)]', dot: false },
     delayed: { label: 'DELAYED', className: 'bg-[var(--danger)] text-white danger-glow', dot: false },
     loading: { label: 'LOADING', className: 'border border-[var(--warn)] text-[var(--warn)]', dot: false },
   }[status]
@@ -73,15 +73,15 @@ export default function ShipmentsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-[20px] font-medium text-foreground">Shipments</h1>
-        <p className="text-[14px] text-muted-foreground mt-1">Track individual shipments across all transport lanes</p>
+      <div className="mb-[30px]">
+        <h1 className="leading-none tracking-[-0.04em]" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--foreground)', margin: 0 }}>Shipments</h1>
+        <p className="text-[15px] mt-3" style={{ color: 'var(--muted-foreground)' }}>Track individual shipments across all transport lanes.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-card border border-border p-5">
+          <div key={stat.label} className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-5">
             <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">{stat.label}</p>
             <div className="text-[32px] font-light leading-none" style={{ color: stat.color }}>{stat.value}</div>
           </div>
@@ -134,7 +134,7 @@ export default function ShipmentsPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search shipment ID, lane, carrier..."
-                className="pl-9 h-8 text-[13px] bg-background border-border focus:border-[#10B981]"
+                className="pl-9 h-8 text-[13px] bg-background border-border focus:border-[var(--primary)]"
               />
             </div>
             <DropdownMenu>
@@ -191,7 +191,7 @@ export default function ShipmentsPage() {
                     <td className="px-4 text-[12px] text-[var(--text-body)]">{s.carrier}</td>
                     <td className="px-4 text-[12px] text-[var(--text-body)]">{s.currentLocation}</td>
                     <td className="px-4 text-[12px]">
-                      <span className={cn('font-mono', deviation ? 'text-[var(--danger)]' : 'text-[#10B981]')}>
+                      <span className={cn('font-mono', deviation ? 'text-[var(--danger)]' : 'text-[var(--primary)]')}>
                         {s.lastTemp}°C
                       </span>
                     </td>
@@ -228,9 +228,9 @@ export default function ShipmentsPage() {
 
               <div className="mt-6 space-y-6">
                 {/* Current location */}
-                <div className="bg-card border border-border p-4">
+                <div className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-4">
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-4 h-4 text-[#10B981] mt-0.5" strokeWidth={1.5} />
+                    <MapPin className="w-4 h-4 text-[var(--primary)] mt-0.5" strokeWidth={1.5} />
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Current location</p>
                       <p className="text-[14px] text-foreground">{selected.currentLocation}</p>
@@ -239,13 +239,13 @@ export default function ShipmentsPage() {
                 </div>
 
                 {/* Temperature */}
-                <div className="bg-card border border-border p-4">
+                <div className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-4">
                   <div className="flex items-start gap-3">
-                    <Thermometer className="w-4 h-4 text-[#10B981] mt-0.5" strokeWidth={1.5} />
+                    <Thermometer className="w-4 h-4 text-[var(--primary)] mt-0.5" strokeWidth={1.5} />
                     <div className="flex-1">
                       <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Temperature</p>
                       <div className="flex items-baseline gap-2">
-                        <span className={cn('text-[20px] font-light', selected.lastTemp > selected.tempMax || selected.lastTemp < selected.tempMin ? 'text-[var(--danger)]' : 'text-[#10B981]')}>
+                        <span className={cn('text-[20px] font-light', selected.lastTemp > selected.tempMax || selected.lastTemp < selected.tempMin ? 'text-[var(--danger)]' : 'text-[var(--primary)]')}>
                           {selected.lastTemp}°C
                         </span>
                         <span className="text-[12px] text-muted-foreground">range {selected.tempMin}–{selected.tempMax}°C</span>
@@ -255,11 +255,11 @@ export default function ShipmentsPage() {
                 </div>
 
                 {/* Timeline */}
-                <div className="bg-card border border-border p-4">
+                <div className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-4">
                   <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">Timeline</p>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] mt-2" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] mt-2" />
                       <div>
                         <p className="text-[12px] text-foreground">Departed</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(selected.departedAt).toLocaleString()}</p>
@@ -274,7 +274,7 @@ export default function ShipmentsPage() {
                     </div>
                     {selected.arrivedAt && (
                       <div className="flex items-start gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] mt-2" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] mt-2" />
                         <div>
                           <p className="text-[12px] text-foreground">Arrived</p>
                           <p className="text-[11px] text-muted-foreground">{new Date(selected.arrivedAt).toLocaleString()}</p>
@@ -285,11 +285,11 @@ export default function ShipmentsPage() {
                 </div>
 
                 {/* Assigned */}
-                <div className="bg-card border border-border p-4">
+                <div className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-4">
                   <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">Assigned</p>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] flex items-center justify-center">
-                      <User className="w-4 h-4 text-[#10B981]" strokeWidth={1.5} />
+                      <User className="w-4 h-4 text-[var(--primary)]" strokeWidth={1.5} />
                     </div>
                     <div>
                       <p className="text-[13px] text-foreground">Sarah Chen</p>
@@ -299,7 +299,7 @@ export default function ShipmentsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1 h-9 text-[13px] bg-[#10B981] text-white hover:bg-[#059669]">
+                  <Button className="flex-1 h-9 text-[13px] bg-[var(--primary)] text-[var(--on-accent)] hover:opacity-90">
                     View Lane
                   </Button>
                   <Button variant="outline" className="flex-1 h-9 text-[13px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary">

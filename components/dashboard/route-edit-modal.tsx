@@ -107,9 +107,9 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
                       className={cn(
                         'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0',
                         wp.completed
-                          ? 'bg-[#10B981] text-[#0A0A0A]'
+                          ? 'bg-[var(--primary)] text-[var(--on-accent)]'
                           : wp.current
-                          ? 'border border-[#10B981] text-[#10B981] bg-transparent'
+                          ? 'border border-[var(--primary)] text-[var(--accent-deep)] bg-[var(--accent-wash)]'
                           : 'border border-[var(--border-hover)] text-muted-foreground bg-transparent'
                       )}
                     >

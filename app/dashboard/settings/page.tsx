@@ -1,11 +1,66 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Switch } from '@/components/ui/switch'
 import { Upload, Camera } from 'lucide-react'
+
+const panelStyle: React.CSSProperties = {
+  background: 'var(--card)',
+  borderRadius: 'var(--r-lg)',
+  boxShadow: 'var(--shadow-1)',
+}
+
+function PanelTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-mono text-[10px] uppercase tracking-[0.1em] mb-4" style={{ color: 'var(--muted-foreground)' }}>
+      {children}
+    </h2>
+  )
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block font-mono text-[10px] uppercase tracking-[0.1em] mb-2" style={{ color: 'var(--muted-foreground)' }}>
+      {children}
+    </label>
+  )
+}
+
+function TextInput({ defaultValue }: { defaultValue: string }) {
+  return (
+    <input
+      defaultValue={defaultValue}
+      className="w-full h-[42px] px-4 text-[13.5px] outline-none transition-all duration-200"
+      style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', color: 'var(--foreground)' }}
+      onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 4px var(--accent-wash)' }}
+      onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+    />
+  )
+}
+
+function AccentButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      className="inline-flex items-center gap-2 h-[38px] px-[16px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+      style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function GhostButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      className="inline-flex items-center gap-2 h-[38px] px-[16px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+      style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)', boxShadow: 'var(--shadow-1)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-line)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent-deep)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--foreground)' }}
+    >
+      {children}
+    </button>
+  )
+}
 
 export default function SettingsPage() {
   const [notif, setNotif] = useState({
@@ -16,114 +71,76 @@ export default function SettingsPage() {
   })
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <div>
-        <h1 className="text-[20px] font-medium text-[#F5F5F5]">Settings</h1>
-        <p className="text-[14px] text-[#6B6B6B] mt-1">
-          Manage account and application preferences
+    <div className="max-w-3xl">
+      <div className="mb-[30px]">
+        <h1
+          className="leading-none tracking-[-0.04em]"
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--foreground)', margin: 0 }}
+        >
+          Settings
+        </h1>
+        <p className="text-[15px] mt-3" style={{ color: 'var(--muted-foreground)' }}>
+          Manage your account and application preferences.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Profile Settings */}
-        <div className="bg-[#111111] border border-[#222222] p-5">
-          <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-4">Profile</h2>
+      <div className="space-y-[18px]">
+        {/* Profile */}
+        <div className="border border-border p-[24px]" style={panelStyle}>
+          <PanelTitle>Profile</PanelTitle>
           <div className="space-y-5">
-            {/* Avatar */}
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <div className="w-16 h-16 rounded-full bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center text-[18px] text-[#10B981] font-medium">
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-[18px] font-semibold"
+                  style={{ background: 'var(--accent-wash)', color: 'var(--accent-deep)', fontFamily: 'var(--font-display)' }}
+                >
                   SC
                 </div>
-                <button className="absolute inset-0 rounded-full bg-[rgba(0,0,0,0.6)] opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                <button className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity" style={{ background: 'rgba(0,0,0,0.6)' }}>
                   <Camera className="w-4 h-4 text-white" strokeWidth={1.5} />
                 </button>
               </div>
               <div>
-                <Button variant="outline" size="sm" className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A] focus-visible:ring-[#10B981]">
-                  <Upload className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Upload avatar
-                </Button>
-                <p className="text-[11px] text-[#6B6B6B] mt-2">JPG or PNG, max 2MB</p>
+                <GhostButton><Upload className="w-3.5 h-3.5" strokeWidth={1.5} /> Upload avatar</GhostButton>
+                <p className="text-[11px] mt-2" style={{ color: 'var(--muted-foreground)' }}>JPG or PNG, max 2MB</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FieldGroup>
-                <Field>
-                  <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">First Name</FieldLabel>
-                  <Input defaultValue="Sarah" className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222] focus:border-[#10B981] focus-visible:ring-[#10B981]" />
-                </Field>
-              </FieldGroup>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Last Name</FieldLabel>
-                  <Input defaultValue="Chen" className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222] focus:border-[#10B981] focus-visible:ring-[#10B981]" />
-                </Field>
-              </FieldGroup>
+              <div><Label>First Name</Label><TextInput defaultValue="Sarah" /></div>
+              <div><Label>Last Name</Label><TextInput defaultValue="Chen" /></div>
             </div>
-            <FieldGroup>
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Email</FieldLabel>
-                <Input defaultValue="sarah.chen@4viso.com" className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222] focus:border-[#10B981] focus-visible:ring-[#10B981]" />
-              </Field>
-            </FieldGroup>
-            <Button className="h-8 text-[12px] bg-[#10B981] text-white hover:bg-[#059669]">
-              Save Changes
-            </Button>
+            <div><Label>Email</Label><TextInput defaultValue="sarah.chen@4viso.com" /></div>
+            <AccentButton>Save Changes</AccentButton>
           </div>
         </div>
 
         {/* Notifications */}
-        <div className="bg-[#111111] border border-[#222222] p-5">
-          <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-2">Notifications</h2>
-          <div className="divide-y divide-[#1A1A1A]">
-            <ToggleRow
-              title="Temperature Alerts"
-              description="Get notified of temperature deviations"
-              checked={notif.temperature}
-              onChange={(v) => setNotif({ ...notif, temperature: v })}
-            />
-            <ToggleRow
-              title="Compliance Updates"
-              description="Daily compliance status summary"
-              checked={notif.compliance}
-              onChange={(v) => setNotif({ ...notif, compliance: v })}
-            />
-            <ToggleRow
-              title="Shipment Arrivals"
-              description="Notifications when shipments arrive"
-              checked={notif.shipment}
-              onChange={(v) => setNotif({ ...notif, shipment: v })}
-            />
-            <ToggleRow
-              title="Weekly Digest"
-              description="Weekly summary of all activities"
-              checked={notif.weekly}
-              onChange={(v) => setNotif({ ...notif, weekly: v })}
-            />
+        <div className="border border-border p-[24px]" style={panelStyle}>
+          <PanelTitle>Notifications</PanelTitle>
+          <div>
+            <ToggleRow title="Temperature Alerts" description="Get notified of temperature deviations" checked={notif.temperature} onChange={v => setNotif({ ...notif, temperature: v })} first />
+            <ToggleRow title="Compliance Updates" description="Daily compliance status summary" checked={notif.compliance} onChange={v => setNotif({ ...notif, compliance: v })} />
+            <ToggleRow title="Shipment Arrivals" description="Notifications when shipments arrive" checked={notif.shipment} onChange={v => setNotif({ ...notif, shipment: v })} />
+            <ToggleRow title="Weekly Digest" description="Weekly summary of all activities" checked={notif.weekly} onChange={v => setNotif({ ...notif, weekly: v })} />
           </div>
         </div>
 
         {/* Security */}
-        <div className="bg-[#111111] border border-[#222222] p-5">
-          <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-4">Security</h2>
-          <div className="flex gap-3">
-            <Button variant="outline" className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">
-              Change Password
-            </Button>
-            <Button variant="outline" className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">
-              Enable 2FA
-            </Button>
+        <div className="border border-border p-[24px]" style={panelStyle}>
+          <PanelTitle>Security</PanelTitle>
+          <div className="flex gap-3 flex-wrap">
+            <GhostButton>Change Password</GhostButton>
+            <GhostButton>Enable 2FA</GhostButton>
           </div>
         </div>
 
         {/* Organization */}
-        <div className="bg-[#111111] border border-[#222222] p-5">
-          <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-4">Organization</h2>
-          <p className="text-[14px] text-[#F5F5F5]">
-            4Viso Supply Chain Intelligence
-          </p>
-          <p className="text-[12px] text-[#6B6B6B] mt-2">
+        <div className="border border-border p-[24px]" style={panelStyle}>
+          <PanelTitle>Organization</PanelTitle>
+          <p className="text-[14px]" style={{ color: 'var(--foreground)', fontWeight: 500 }}>4Viso Supply Chain Intelligence</p>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--muted-foreground)' }}>
             Contact your administrator to manage organization settings.
           </p>
         </div>
@@ -132,22 +149,23 @@ export default function SettingsPage() {
   )
 }
 
-function ToggleRow({ title, description, checked, onChange }: {
+function ToggleRow({ title, description, checked, onChange, first }: {
   title: string
   description: string
   checked: boolean
   onChange: (checked: boolean) => void
+  first?: boolean
 }) {
   return (
-    <div className="flex items-center justify-between py-3.5">
+    <div className="flex items-center justify-between py-4" style={{ borderTop: first ? undefined : '1px solid var(--line-soft)' }}>
       <div>
-        <p className="text-[14px] text-[#F5F5F5]">{title}</p>
-        <p className="text-[12px] text-[#6B6B6B] mt-0.5">{description}</p>
+        <p className="text-[14px]" style={{ color: 'var(--foreground)', fontWeight: 500 }}>{title}</p>
+        <p className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{description}</p>
       </div>
       <Switch
         checked={checked}
         onCheckedChange={onChange}
-        className="data-[state=checked]:bg-[#10B981] data-[state=unchecked]:bg-[#222222]"
+        className="data-[state=checked]:bg-[var(--primary)] data-[state=unchecked]:bg-[var(--border)]"
       />
     </div>
   )

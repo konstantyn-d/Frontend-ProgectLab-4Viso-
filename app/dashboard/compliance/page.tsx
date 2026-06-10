@@ -41,17 +41,17 @@ export default function CompliancePage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-[20px] font-medium text-foreground">Compliance</h1>
-        <p className="text-[14px] text-muted-foreground mt-1">
-          Monitor GDP compliance and regulatory requirements
+      <div className="mb-[30px]">
+        <h1 className="leading-none tracking-[-0.04em]" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--foreground)', margin: 0 }}>Compliance</h1>
+        <p className="text-[15px] mt-3" style={{ color: 'var(--muted-foreground)' }}>
+          Monitor GDP compliance and regulatory requirements.
         </p>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric) => (
-          <div key={metric.label} className="bg-card border border-border p-5">
+          <div key={metric.label} className="bg-card border border-border rounded-[var(--r-lg)] shadow-[var(--shadow-1)] p-5">
             <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">{metric.label}</p>
             <div className="flex items-baseline gap-1">
               <span className="text-[32px] font-light text-foreground leading-none">{metric.value}</span>
@@ -70,8 +70,8 @@ export default function CompliancePage() {
             <p className="text-[12px] text-[var(--text-muted)] mt-1">12-week rolling window</p>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-[24px] font-light text-[#10B981]">94.2%</span>
-            <span className="text-[11px] text-[#10B981]">+3.0 pts</span>
+            <span className="text-[24px] font-light text-[var(--primary)]">94.2%</span>
+            <span className="text-[11px] text-[var(--primary)]">+3.0 pts</span>
           </div>
         </div>
         <div className="h-[220px] px-4 py-4">

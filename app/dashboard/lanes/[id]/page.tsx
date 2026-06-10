@@ -1,14 +1,11 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { mockLanes, mockPorts, mockTeam, mockDocuments, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { RouteEditModal } from '@/components/dashboard/route-edit-modal'
 import {
-  LineChart,
-  Line,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -18,9 +15,10 @@ import {
   Area,
   ComposedChart,
 } from 'recharts'
-import { ComposableMap, Geographies, Geography, Line as MapLine, Marker } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Line as MapLine, Marker, Graticule } from 'react-simple-maps'
 import {
   ArrowLeft,
+  ArrowUpRight,
   Pencil,
   Pause,
   Archive,
@@ -34,14 +32,13 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  ChevronRight,
 } from 'lucide-react'
 
 const modeIcons = {
-  air: <Plane className="w-4 h-4" strokeWidth={1.5} />,
-  sea: <Ship className="w-4 h-4" strokeWidth={1.5} />,
-  road: <Truck className="w-4 h-4" strokeWidth={1.5} />,
-  multimodal: <Layers className="w-4 h-4" strokeWidth={1.5} />,
+  air: <Plane className="w-[19px] h-[19px]" strokeWidth={1.5} />,
+  sea: <Ship className="w-[19px] h-[19px]" strokeWidth={1.5} />,
+  road: <Truck className="w-[19px] h-[19px]" strokeWidth={1.5} />,
+  multimodal: <Layers className="w-[19px] h-[19px]" strokeWidth={1.5} />,
 }
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
@@ -49,10 +46,44 @@ const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 function eventSeverityConfig(severity: 'info' | 'success' | 'warning' | 'critical') {
   return {
     info: { color: 'var(--info-c)', icon: <Clock className="w-3.5 h-3.5" strokeWidth={1.5} /> },
-    success: { color: 'var(--primary)', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> },
+    success: { color: 'var(--accent-deep)', icon: <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> },
     warning: { color: 'var(--warn)', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
     critical: { color: 'var(--danger)', icon: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> },
   }[severity]
+}
+
+function PanelHead({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 px-[22px] py-[18px] border-b" style={{ borderColor: 'var(--line-soft)' }}>
+      <div>
+        <h2 className="text-[16px] leading-none tracking-[-0.02em]" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--foreground)', margin: 0 }}>
+          {title}
+        </h2>
+        {sub && <p className="text-[12.5px] mt-[3px]" style={{ color: 'var(--muted-foreground)' }}>{sub}</p>}
+      </div>
+      {right}
+    </div>
+  )
+}
+
+const panelStyle: React.CSSProperties = {
+  background: 'var(--card)',
+  borderRadius: 'var(--r-lg)',
+  boxShadow: 'var(--shadow-1)',
+}
+
+function GhostButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-2 h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+      style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)', boxShadow: 'var(--shadow-1)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-line)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent-deep)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--foreground)' }}
+    >
+      {children}
+    </button>
+  )
 }
 
 export default function LaneDetailPage() {
@@ -70,7 +101,6 @@ export default function LaneDetailPage() {
   const originPort = lane ? mockPorts.find(p => p.code === lane.originCode) : null
   const destPort = lane ? mockPorts.find(p => p.code === lane.destinationCode) : null
 
-  // Current position along the route
   const currentPosition = useMemo(() => {
     if (!originPort || !destPort || !lane) return null
     const t = lane.progress / 100
@@ -80,128 +110,156 @@ export default function LaneDetailPage() {
     }
   }, [originPort, destPort, lane])
 
+  // Fit the map to the route: center on the midpoint, scale by distance
+  const mapView = useMemo(() => {
+    if (!originPort || !destPort) return { center: [0, 30] as [number, number], scale: 140 }
+    const midLng = (originPort.lng + destPort.lng) / 2
+    const midLat = (originPort.lat + destPort.lat) / 2
+    const dLng = Math.abs(originPort.lng - destPort.lng)
+    const dLat = Math.abs(originPort.lat - destPort.lat)
+    const span = Math.max(dLng, dLat * 1.4, 12)
+    const scale = Math.max(120, Math.min(420, 9000 / span))
+    return { center: [midLng, midLat] as [number, number], scale }
+  }, [originPort, destPort])
+
   if (!lane) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-[14px] text-[#6B6B6B]">Lane not found</p>
-        <Button
-          variant="outline"
-          className="mt-4 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
-          onClick={() => router.push('/dashboard/lanes')}
-        >
-          Back to lanes
-        </Button>
+        <p className="text-[14px]" style={{ color: 'var(--muted-foreground)' }}>Lane not found</p>
+        <GhostButton onClick={() => router.push('/dashboard/lanes')}>Back to lanes</GhostButton>
       </div>
     )
   }
 
+  const routeColor = lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'
+
+  const attributes = [
+    { k: 'Carrier', v: lane.carrier },
+    { k: 'Mode', v: lane.mode.charAt(0).toUpperCase() + lane.mode.slice(1) },
+    { k: 'Temp Range', v: `${lane.tempMin}–${lane.tempMax}°C` },
+    { k: 'Current Temp', v: `${lane.currentTemp}°C`, bad: lane.tempDeviation },
+    { k: 'Risk Score', v: `${lane.riskScore}%`, risk: lane.riskScore > 60 ? 'high' : lane.riskScore > 30 ? 'mid' : 'low' },
+    { k: 'Last Updated', v: new Date(lane.lastUpdated).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) },
+  ]
+
   return (
-    <div className="space-y-6">
+    <div>
       {/* Back */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-[12px] text-[#6B6B6B] hover:text-[#F5F5F5]"
+        className="inline-flex items-center gap-2 text-[12.5px] mb-[22px] transition-colors"
+        style={{ color: 'var(--muted-foreground)', background: 'none', border: 'none', cursor: 'pointer' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-deep)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-foreground)')}
       >
-        <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
-        Back
+        <ArrowLeft className="w-[15px] h-[15px]" strokeWidth={1.5} />
+        Back to lanes
       </button>
 
       {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="flex items-start justify-between flex-wrap gap-6 mb-[26px]">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] font-mono">{lane.id}</span>
+          <div className="flex items-center gap-2.5 mb-3 flex-wrap">
+            <span className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: 'var(--muted-foreground)' }}>{lane.id}</span>
             {lane.tempDeviation && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.06em] rounded-sm bg-[#E53E3E] text-white danger-glow font-medium">
-                <AlertTriangle className="w-3 h-3" strokeWidth={1.5} />
-                Temp Deviation
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] rounded-full font-medium danger-glow" style={{ color: '#fff', background: 'var(--danger)' }}>
+                <AlertTriangle className="w-3 h-3" strokeWidth={1.5} /> Temp Deviation
               </span>
             )}
             {lane.gdpCompliant && !lane.tempDeviation && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.06em] rounded-sm border border-[#10B981] text-[#10B981] font-medium">
-                <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} />
-                GDP Compliant
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] rounded-full border font-medium" style={{ color: 'var(--accent-deep)', background: 'var(--accent-wash)', borderColor: 'var(--accent-line)' }}>
+                <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} /> GDP Compliant
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-[#6B6B6B]">{modeIcons[lane.mode]}</div>
-            <h1 className="font-mono text-[24px] text-[#F5F5F5] font-medium">
-              {lane.originCode} <span className="text-[#3D3D3D]">→</span> {lane.destinationCode}
+          <div className="flex items-center gap-3.5">
+            <div className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center" style={{ background: 'var(--accent-wash)', color: 'var(--accent-deep)' }}>
+              {modeIcons[lane.mode]}
+            </div>
+            <h1 className="font-mono flex items-center gap-3" style={{ fontWeight: 600, fontSize: 30, letterSpacing: '-0.01em', color: 'var(--foreground)', margin: 0 }}>
+              {lane.originCode}
+              <ArrowUpRight className="w-[20px] h-[20px]" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
+              {lane.destinationCode}
             </h1>
           </div>
-          <p className="text-[13px] text-[#6B6B6B] mt-1">
+          <p className="text-[13.5px] mt-2" style={{ color: 'var(--muted-foreground)' }}>
             {lane.origin} to {lane.destination} · {lane.carrier}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
             onClick={() => setRouteEditOpen(true)}
-            className="h-8 text-[12px] bg-[#10B981] text-white hover:bg-[#059669]"
+            className="inline-flex items-center gap-2 h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+            style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
           >
-            <Pencil className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} />
-            Edit Route
-          </Button>
-          <Button variant="outline" className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">
-            <Pause className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} />
-            Pause
-          </Button>
-          <Button variant="outline" className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]">
-            <Archive className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} />
-            Archive
-          </Button>
+            <Pencil className="w-[14px] h-[14px]" strokeWidth={1.5} /> Edit Route
+          </button>
+          <GhostButton><Pause className="w-[14px] h-[14px]" strokeWidth={1.5} /> Pause</GhostButton>
+          <GhostButton><Archive className="w-[14px] h-[14px]" strokeWidth={1.5} /> Archive</GhostButton>
         </div>
       </div>
 
-      {/* Progress indicator */}
-      <div className="bg-[#111111] border border-[#222222] p-5">
-        <div className="flex items-center gap-2">
+      {/* Waypoints */}
+      <section className="border border-border mb-[18px]" style={panelStyle}>
+        <div className="flex items-start px-[24px] py-[26px]">
           {waypoints.map((wp, idx) => (
-            <div key={wp.code + idx} className="flex items-center flex-1">
-              <div className="flex flex-col items-start gap-2">
+            <div key={wp.code + idx} className="flex items-start flex-1">
+              <div className="flex flex-col gap-2.5 min-w-[76px]">
                 <div
-                  className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-medium shrink-0',
+                  className={cn('w-[36px] h-[36px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold shrink-0')}
+                  style={
                     wp.completed
-                      ? 'bg-[#10B981] text-[#0A0A0A]'
+                      ? { background: 'var(--primary)', color: 'var(--on-accent)' }
                       : wp.current
-                      ? 'border-2 border-[#10B981] text-[#10B981] bg-[rgba(16,185,129,0.1)]'
-                      : 'border border-[#2E2E2E] text-[#6B6B6B] bg-transparent'
-                  )}
+                      ? { border: '2px solid var(--primary)', color: 'var(--accent-deep)', background: 'var(--accent-wash)' }
+                      : { border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--card)' }
+                  }
                 >
-                  {wp.completed ? <Check className="w-3.5 h-3.5" strokeWidth={2} /> : idx + 1}
+                  {wp.completed ? <Check className="w-4 h-4" strokeWidth={2} /> : idx + 1}
                 </div>
                 <div>
-                  <p className={cn('text-[11px] uppercase tracking-[0.06em]', wp.current ? 'text-[#10B981]' : 'text-[#6B6B6B]')}>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.06em]" style={{ color: wp.current ? 'var(--accent-deep)' : 'var(--muted-foreground)' }}>
                     {wp.type}
                   </p>
-                  <p className="font-mono text-[12px] text-[#F5F5F5] mt-0.5">{wp.code}</p>
+                  <p className="font-mono text-[13px] font-semibold mt-[3px]" style={{ color: 'var(--foreground)' }}>{wp.code}</p>
                 </div>
               </div>
               {idx < waypoints.length - 1 && (
-                <div className={cn('flex-1 h-px mx-2 mb-8', wp.completed ? 'bg-[#10B981]' : 'bg-[#222222]')} />
+                <div className="flex-1 h-[2px] rounded mx-2 mt-[17px]" style={{ background: wp.completed ? 'var(--primary)' : 'var(--border)' }} />
               )}
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Map + temp chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A]">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Route Map</h2>
-            <p className="text-[12px] text-[#3D3D3D] mt-1">Current position marked</p>
-          </div>
-          <div className="h-[280px]">
-            <ComposableMap projectionConfig={{ scale: 120, center: [originPort && destPort ? (originPort.lng + destPort.lng) / 2 : 0, 30] }} width={500} height={280} style={{ width: '100%', height: '100%' }}>
+      {/* Map + Temp */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px] mb-[18px]">
+        {/* Route Map */}
+        <section className="border border-border overflow-hidden" style={panelStyle}>
+          <PanelHead
+            title="Route Map"
+            sub="Current position marked"
+            right={
+              <span className="font-mono text-[10px] uppercase tracking-[0.07em] px-2.5 py-1 rounded-full border" style={{ color: 'var(--muted-foreground)', background: 'var(--secondary)', borderColor: 'var(--border)' }}>
+                {lane.progress}% complete
+              </span>
+            }
+          />
+          <div className="h-[280px]" style={{ background: 'var(--map-bg)' }}>
+            <ComposableMap
+              projectionConfig={{ scale: mapView.scale, center: mapView.center }}
+              width={520}
+              height={280}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <Graticule stroke="var(--map-grid)" strokeWidth={0.5} />
               <Geographies geography={geoUrl}>
                 {({ geographies }) =>
                   geographies.map(geo => (
                     <Geography key={geo.rsmKey} geography={geo} style={{
-                      default: { fill: '#141414', stroke: '#1F1F1F', strokeWidth: 0.4, outline: 'none' },
-                      hover: { fill: '#141414', outline: 'none' },
-                      pressed: { fill: '#141414', outline: 'none' },
+                      default: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
+                      hover: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
+                      pressed: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
                     }} />
                   ))
                 }
@@ -211,48 +269,57 @@ export default function LaneDetailPage() {
                   <MapLine
                     from={[originPort.lng, originPort.lat]}
                     to={[destPort.lng, destPort.lat]}
-                    stroke={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'}
-                    strokeWidth={1.5}
-                    strokeOpacity={0.7}
+                    stroke={routeColor}
+                    strokeWidth={1.6}
+                    strokeOpacity={0.55}
                     strokeLinecap="round"
+                    style={{ vectorEffect: 'non-scaling-stroke' } as React.CSSProperties}
                   />
-                  <Marker coordinates={[originPort.lng, originPort.lat]}>
-                    <circle r={3} fill="var(--primary)" stroke="#0A0A0A" strokeWidth={0.8} />
-                    <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: '#A0A0A0' }}>{originPort.code}</text>
-                  </Marker>
-                  <Marker coordinates={[destPort.lng, destPort.lat]}>
-                    <circle r={3} fill="var(--primary)" stroke="#0A0A0A" strokeWidth={0.8} />
-                    <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: '#A0A0A0' }}>{destPort.code}</text>
-                  </Marker>
+                  <MapLine
+                    from={[originPort.lng, originPort.lat]}
+                    to={[destPort.lng, destPort.lat]}
+                    stroke={routeColor}
+                    strokeWidth={2.2}
+                    strokeOpacity={0.9}
+                    strokeLinecap="round"
+                    className="map-flow-line"
+                    style={{ vectorEffect: 'non-scaling-stroke' } as React.CSSProperties}
+                  />
+                  {[originPort, destPort].map(port => (
+                    <Marker key={port.code} coordinates={[port.lng, port.lat]}>
+                      <circle r={2.6} fill="var(--primary)" style={{ stroke: 'var(--card)', strokeWidth: 0.8 }} />
+                      <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: 'var(--text-body)', letterSpacing: '0.05em' }}>{port.code}</text>
+                    </Marker>
+                  ))}
                   {currentPosition && lane.status !== 'arrived' && (
                     <Marker coordinates={[currentPosition.lng, currentPosition.lat]}>
-                      <circle r={3} fill="none" stroke={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'} strokeWidth={1}>
-                        <animate attributeName="r" from="3" to="12" dur="1.5s" repeatCount="indefinite" />
+                      <circle r={3} fill="none" stroke={routeColor} strokeWidth={1.2}>
+                        <animate attributeName="r" from="3" to="13" dur="1.5s" repeatCount="indefinite" />
                         <animate attributeName="opacity" from="0.7" to="0" dur="1.5s" repeatCount="indefinite" />
                       </circle>
-                      <circle r={3} fill={lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'} stroke="#0A0A0A" strokeWidth={0.8} />
+                      <circle r={3.4} fill={routeColor} style={{ stroke: 'var(--card)', strokeWidth: 1 }} />
                     </Marker>
                   )}
                 </>
               )}
             </ComposableMap>
           </div>
-        </div>
+        </section>
 
         {/* Temperature chart */}
-        <div className="bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
-            <div>
-              <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Temperature</h2>
-              <p className="text-[12px] text-[#3D3D3D] mt-1">48-hour history</p>
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className={cn('text-[20px] font-light', lane.tempDeviation ? 'text-[#E53E3E]' : 'text-[#10B981]')}>
-                {lane.currentTemp}°C
-              </span>
-              <span className="text-[11px] text-[#6B6B6B]">/ {lane.tempMin}–{lane.tempMax}°C</span>
-            </div>
-          </div>
+        <section className="border border-border overflow-hidden" style={panelStyle}>
+          <PanelHead
+            title="Temperature"
+            sub="48-hour history"
+            right={
+              <div className="flex items-baseline gap-1.5">
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em', color: lane.tempDeviation ? 'var(--danger)' : 'var(--accent-deep)' }}>
+                  {lane.currentTemp}°C
+                </span>
+                <span className="text-[12px]" style={{ color: 'var(--muted-foreground)' }}>/ {lane.tempMin}–{lane.tempMax}°C</span>
+              </div>
+            }
+          />
           <div className="h-[230px] px-4 py-4">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={tempHistory}>
@@ -262,96 +329,123 @@ export default function LaneDetailPage() {
                     <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="2 2" stroke="#1A1A1A" vertical={false} />
-                <XAxis dataKey="time" stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={{ stroke: '#222222' }} tickLine={false} interval="preserveStartEnd" minTickGap={40} />
-                <YAxis domain={['dataMin - 2', 'dataMax + 2']} stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#0A0A0A', border: '1px solid #222222', fontSize: 12 }} labelStyle={{ color: '#6B6B6B' }} />
+                <CartesianGrid strokeDasharray="2 2" stroke="var(--line-soft)" vertical={false} />
+                <XAxis dataKey="time" stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} interval="preserveStartEnd" minTickGap={40} />
+                <YAxis domain={['dataMin - 2', 'dataMax + 2']} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: 'var(--muted-foreground)' }} />
                 <ReferenceLine y={lane.tempMax} stroke="var(--danger)" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Max ${lane.tempMax}°`, fill: 'var(--danger)', fontSize: 9, position: 'right' }} />
                 <ReferenceLine y={lane.tempMin} stroke="var(--info-c)" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: `Min ${lane.tempMin}°`, fill: 'var(--info-c)', fontSize: 9, position: 'right' }} />
                 <Area type="monotone" dataKey="temp" stroke="var(--primary)" strokeWidth={1.5} fill="url(#tempGrad)" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
       </div>
 
+      {/* Lane Attributes */}
+      <section className="border border-border overflow-hidden mb-[18px]" style={panelStyle}>
+        <PanelHead title="Lane Attributes" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          {attributes.map((c, i) => (
+            <div
+              key={c.k}
+              className="px-[22px] py-[18px]"
+              style={{
+                borderRight: '1px solid var(--line-soft)',
+                borderBottom: i < attributes.length - (attributes.length % 6 || 6) ? '1px solid var(--line-soft)' : undefined,
+              }}
+            >
+              <div className="font-mono text-[10px] uppercase tracking-[0.08em] mb-2" style={{ color: 'var(--muted-foreground)' }}>{c.k}</div>
+              <div
+                className="text-[14px]"
+                style={{
+                  color: c.bad ? 'var(--danger)' : c.risk ? (c.risk === 'high' ? 'var(--danger)' : c.risk === 'mid' ? 'var(--warn)' : 'var(--accent-deep)') : 'var(--foreground)',
+                  fontWeight: 500,
+                }}
+              >
+                {c.v}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Events + Team + Documents */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[18px]">
         {/* Events */}
-        <div className="lg:col-span-2 bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A]">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Event Timeline</h2>
-          </div>
-          <div className="p-4 space-y-4">
+        <section className="lg:col-span-2 border border-border overflow-hidden" style={panelStyle}>
+          <PanelHead title="Event Timeline" />
+          <div className="p-[22px] space-y-1">
             {events.map((event, idx) => {
               const cfg = eventSeverityConfig(event.severity)
               return (
-                <div key={event.id} className="relative flex gap-3">
+                <div key={event.id} className="relative flex gap-3.5 py-2.5">
                   {idx !== events.length - 1 && (
-                    <div className="absolute left-3 top-8 bottom-0 w-px bg-[#222222]" />
+                    <div className="absolute left-[13px] top-[38px] bottom-[-10px] w-px" style={{ background: 'var(--border)' }} />
                   )}
                   <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10"
-                    style={{ background: '#0A0A0A', border: `1px solid ${cfg.color}`, color: cfg.color }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10"
+                    style={{ background: 'var(--card)', border: `1px solid ${cfg.color}`, color: cfg.color }}
                   >
                     {cfg.icon}
                   </div>
-                  <div className="flex-1 pb-2">
+                  <div className="flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-[13px] text-[#F5F5F5]">{event.title}</p>
-                      <span className="text-[10px] text-[#6B6B6B] shrink-0">
+                      <p className="text-[13px]" style={{ color: 'var(--foreground)', fontWeight: 500 }}>{event.title}</p>
+                      <span className="text-[10px] shrink-0" style={{ color: 'var(--muted-foreground)' }}>
                         {new Date(event.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-[12px] text-[#A0A0A0] mt-0.5">{event.description}</p>
+                    <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-body)' }}>{event.description}</p>
                   </div>
                 </div>
               )
             })}
           </div>
-        </div>
+        </section>
 
         {/* Team + Documents */}
-        <div className="space-y-4">
-          <div className="bg-[#111111] border border-[#222222]">
-            <div className="px-4 py-3 border-b border-[#1A1A1A]">
-              <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Assigned Team</h2>
-            </div>
-            <div className="p-4 space-y-3">
+        <div className="space-y-[18px]">
+          <section className="border border-border overflow-hidden" style={panelStyle}>
+            <PanelHead title="Assigned Team" />
+            <div className="p-[18px] space-y-3.5">
               {mockTeam.map(member => (
                 <div key={member.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] flex items-center justify-center text-[11px] text-[#10B981] font-medium shrink-0">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0" style={{ background: 'var(--accent-wash)', color: 'var(--accent-deep)', fontFamily: 'var(--font-display)' }}>
                     {member.initials}
                   </div>
                   <div>
-                    <p className="text-[12px] text-[#F5F5F5]">{member.name}</p>
-                    <p className="text-[10px] text-[#6B6B6B]">{member.role}</p>
+                    <p className="text-[12.5px]" style={{ color: 'var(--foreground)', fontWeight: 500 }}>{member.name}</p>
+                    <p className="text-[10.5px]" style={{ color: 'var(--muted-foreground)' }}>{member.role}</p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="bg-[#111111] border border-[#222222]">
-            <div className="px-4 py-3 border-b border-[#1A1A1A]">
-              <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Documents</h2>
-            </div>
-            <div className="divide-y divide-[#1A1A1A]">
-              {mockDocuments.map(doc => (
+          <section className="border border-border overflow-hidden" style={panelStyle}>
+            <PanelHead title="Documents" />
+            <div>
+              {mockDocuments.map((doc, idx) => (
                 <button
                   key={doc.id}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[rgba(16,185,129,0.03)] text-left"
+                  className="w-full flex items-center gap-3 px-[18px] py-3 text-left transition-colors"
+                  style={{ borderTop: idx > 0 ? '1px solid var(--line-soft)' : undefined }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-wash)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '')}
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#6B6B6B] shrink-0" strokeWidth={1.5} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-[#F5F5F5] truncate">{doc.name}</p>
-                    <p className="text-[10px] text-[#6B6B6B]">{doc.size}</p>
+                  <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>
+                    <FileText className="w-[15px] h-[15px]" strokeWidth={1.5} />
                   </div>
-                  <Download className="w-3.5 h-3.5 text-[#6B6B6B] shrink-0" strokeWidth={1.5} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] truncate" style={{ color: 'var(--foreground)' }}>{doc.name}</p>
+                    <p className="text-[10.5px]" style={{ color: 'var(--muted-foreground)' }}>{doc.size}</p>
+                  </div>
+                  <Download className="w-[15px] h-[15px] shrink-0" style={{ color: 'var(--muted-foreground)' }} strokeWidth={1.5} />
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
