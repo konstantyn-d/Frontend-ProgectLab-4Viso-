@@ -14,36 +14,32 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { mockLanes, mockShipments, carriers } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getAlerts, type AlertVM } from '@/lib/services/alertsService'
+import type { AlertType, AlertSeverity } from '@/lib/supabase/types'
 
-interface Notification {
-  id: string
-  type: 'alert' | 'shipment' | 'compliance' | 'delay'
-  title: string
-  description: string
-  time: string
-  severity: 'critical' | 'warning' | 'info' | 'success'
+function alertIcon(type: AlertType): React.ReactNode {
+  if (type === 'temperature') return <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
+  if (type === 'certification' || type === 'validator') return <FileCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
+  if (type === 'customs' || type === 'delay') return <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
+  return <Truck className="w-3.5 h-3.5" strokeWidth={1.5} />
 }
 
-const notifications: Notification[] = [
-  { id: 'N1', type: 'alert', title: 'Temperature deviation', description: 'LN-003: 11°C exceeds 8°C threshold', time: '2m ago', severity: 'critical' },
-  { id: 'N2', type: 'delay', title: 'Customs delay', description: 'LN-008 delayed 4h at LAX', time: '18m ago', severity: 'warning' },
-  { id: 'N3', type: 'shipment', title: 'Shipment departed', description: 'SH-48211 left Mumbai', time: '1h ago', severity: 'info' },
-  { id: 'N4', type: 'compliance', title: 'Audit completed', description: 'Q1 GDP audit passed, 0 findings', time: '3h ago', severity: 'success' },
-  { id: 'N5', type: 'shipment', title: 'Shipment arrived', description: 'SH-48150 arrived Tokyo NRT', time: '5h ago', severity: 'success' },
-]
-
-const notifIconMap: Record<Notification['type'], React.ReactNode> = {
-  alert: <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />,
-  shipment: <Truck className="w-3.5 h-3.5" strokeWidth={1.5} />,
-  compliance: <FileCheck className="w-3.5 h-3.5" strokeWidth={1.5} />,
-  delay: <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />,
-}
-
-const notifSeverityColors = {
+const notifSeverityColors: Record<AlertSeverity, { border: string; text: string }> = {
   critical: { border: 'border-[var(--danger)]', text: 'text-[var(--danger)]' },
   warning: { border: 'border-[var(--warn)]', text: 'text-[var(--warn)]' },
   info: { border: 'border-[var(--info-c)]', text: 'text-[var(--info-c)]' },
-  success: { border: 'border-[var(--primary)]', text: 'text-[var(--primary)]' },
+}
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  if (Number.isNaN(diff)) return ''
+  const mins = Math.round(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.round(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.round(hours / 24)}d ago`
 }
 
 function IconButton({
@@ -86,6 +82,9 @@ function IconButton({
 export function Header() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
+  const { data: alerts } = useQuery(getAlerts, [])
+  const notifications: AlertVM[] = alerts ?? []
+  const openCount = notifications.filter(n => n.status === 'open' || n.status === 'assigned').length
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -231,37 +230,42 @@ export function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div>
-              <IconButton label="Notifications" badge>
+              <IconButton label="Notifications" badge={openCount > 0}>
                 <Bell className="w-[17px] h-[17px]" strokeWidth={1.5} />
               </IconButton>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 bg-card border-border" style={{ borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-2)' }}>
-            <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground">
-              Notifications
+            <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground flex items-center justify-between">
+              <span>Notifications</span>
+              {openCount > 0 && <span className="text-[var(--danger)]">{openCount} open</span>}
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border" />
-            {notifications.map(n => {
+            {notifications.length === 0 && (
+              <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">No notifications</div>
+            )}
+            {notifications.slice(0, 6).map(n => {
               const colors = notifSeverityColors[n.severity]
               return (
                 <DropdownMenuItem
                   key={n.id}
-                  className={cn('flex gap-3 py-3 border-l-2 rounded-none cursor-pointer items-start', colors.border)}
+                  onClick={() => n.laneCode && router.push(`/dashboard/lanes/${n.laneCode}`)}
+                  className={cn('flex gap-3 py-3 border-l-2 rounded-none cursor-pointer items-start', colors.border, n.status === 'resolved' && 'opacity-60')}
                 >
-                  <div className={cn('mt-0.5 shrink-0', colors.text)}>{notifIconMap[n.type]}</div>
+                  <div className={cn('mt-0.5 shrink-0', colors.text)}>{alertIcon(n.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                      <span className="text-[12px] text-foreground font-medium">{n.title}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{n.time}</span>
+                      <span className="text-[12px] text-foreground font-medium truncate">{n.title}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(n.createdAt)}</span>
                     </div>
-                    <p className="text-[11px] text-[var(--text-body)] leading-snug">{n.description}</p>
+                    <p className="text-[11px] text-[var(--text-body)] leading-snug">{n.message}</p>
                   </div>
                 </DropdownMenuItem>
               )
             })}
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="justify-center text-[12px] text-[var(--accent-deep)] hover:text-[var(--primary)] cursor-pointer">
-              View all notifications
+            <DropdownMenuItem onClick={() => router.push('/dashboard/audit-log')} className="justify-center text-[12px] text-[var(--accent-deep)] hover:text-[var(--primary)] cursor-pointer">
+              View all activity
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
