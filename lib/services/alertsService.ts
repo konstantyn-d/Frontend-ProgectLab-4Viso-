@@ -4,6 +4,7 @@
  */
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client'
 import type { AlertRow, AlertType, AlertSeverity, AlertStatus } from '@/lib/supabase/types'
+import { logAudit } from './auditService'
 
 export interface AlertVM {
   id: string
@@ -84,4 +85,27 @@ export async function getAlertsForLane(laneCode: string): Promise<AlertVM[]> {
 export async function getOpenAlertCount(): Promise<number> {
   const all = await getAlerts()
   return all.filter(a => a.status === 'open' || a.status === 'assigned').length
+}
+
+// ---- mutations ----------------------------------------------------
+export async function assignAlert(alertId: string, profileId: string, profileName: string, actorId?: string): Promise<void> {
+  if (!isSupabaseConfigured()) return // demo: handled optimistically by caller
+  const sb = getSupabase()!
+  const { error } = await sb.from('alerts').update({ assigned_to: profileId, status: 'assigned' } as never).eq('id', alertId)
+  if (error) throw new Error(error.message)
+  await logAudit({ actorId: actorId ?? null, actionType: 'alert_assigned', entityType: 'alert', entityId: alertId, description: `Alert assigned to ${profileName}` })
+}
+
+export async function resolveAlert(alertId: string, actorId?: string, note?: string): Promise<void> {
+  if (!isSupabaseConfigured()) return // demo: handled optimistically by caller
+  const sb = getSupabase()!
+  const { error } = await sb.from('alerts').update({
+    status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: actorId ?? null,
+  } as never).eq('id', alertId)
+  if (error) throw new Error(error.message)
+  await logAudit({
+    actorId: actorId ?? null, actionType: 'alert_resolved', entityType: 'alert', entityId: alertId,
+    description: note ? `Alert resolved — ${note}` : 'Alert resolved',
+    metadata: note ? { note } : undefined,
+  })
 }

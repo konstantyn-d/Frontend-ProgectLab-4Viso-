@@ -16,6 +16,7 @@ import { mockLanes, mockShipments, carriers } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getAlerts, type AlertVM } from '@/lib/services/alertsService'
+import { AlertDetailDialog } from '@/components/dashboard/alert-detail-dialog'
 import type { AlertType, AlertSeverity } from '@/lib/supabase/types'
 
 function alertIcon(type: AlertType): React.ReactNode {
@@ -83,8 +84,15 @@ export function Header() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const { data: alerts } = useQuery(getAlerts, [])
-  const notifications: AlertVM[] = alerts ?? []
+  const [overrides, setOverrides] = useState<Record<string, Partial<AlertVM>>>({})
+  const [selectedAlert, setSelectedAlert] = useState<AlertVM | null>(null)
+  const notifications: AlertVM[] = (alerts ?? []).map(a => (overrides[a.id] ? { ...a, ...overrides[a.id] } : a))
   const openCount = notifications.filter(n => n.status === 'open' || n.status === 'assigned').length
+
+  const handleAlertChanged = (id: string, patch: Partial<AlertVM>) => {
+    setOverrides(o => ({ ...o, [id]: { ...o[id], ...patch } }))
+    setSelectedAlert(cur => (cur && cur.id === id ? { ...cur, ...patch } : cur))
+  }
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -249,7 +257,7 @@ export function Header() {
               return (
                 <DropdownMenuItem
                   key={n.id}
-                  onClick={() => n.laneCode && router.push(`/dashboard/lanes/${n.laneCode}`)}
+                  onClick={() => setSelectedAlert(n)}
                   className={cn('flex gap-3 py-3 border-l-2 rounded-none cursor-pointer items-start', colors.border, n.status === 'resolved' && 'opacity-60')}
                 >
                   <div className={cn('mt-0.5 shrink-0', colors.text)}>{alertIcon(n.type)}</div>
@@ -297,6 +305,12 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <AlertDetailDialog
+        alert={selectedAlert}
+        onOpenChange={(o) => { if (!o) setSelectedAlert(null) }}
+        onChanged={handleAlertChanged}
+      />
     </header>
   )
 }
