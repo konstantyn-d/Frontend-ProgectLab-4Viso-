@@ -12,10 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { mockLanes, mockShipments, carriers } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getAlerts, type AlertVM } from '@/lib/services/alertsService'
+import { getLanes } from '@/lib/services/lanesService'
+import { getShipments } from '@/lib/services/shipmentsService'
+import { searchAll } from '@/lib/services/searchService'
 import { AlertDetailDialog } from '@/components/dashboard/alert-detail-dialog'
 import type { AlertType, AlertSeverity } from '@/lib/supabase/types'
 
@@ -84,6 +86,8 @@ export function Header() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const { data: alerts } = useQuery(getAlerts, [])
+  const { data: searchLanes } = useQuery(getLanes, [])
+  const { data: searchShipments } = useQuery(getShipments, [])
   const [overrides, setOverrides] = useState<Record<string, Partial<AlertVM>>>({})
   const [selectedAlert, setSelectedAlert] = useState<AlertVM | null>(null)
   const notifications: AlertVM[] = (alerts ?? []).map(a => (overrides[a.id] ? { ...a, ...overrides[a.id] } : a))
@@ -107,30 +111,13 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return { lanes: [], carriers: [], shipments: [] }
-    return {
-      lanes: mockLanes
-        .filter(l =>
-          `${l.originCode}-${l.destinationCode}`.toLowerCase().includes(q) ||
-          l.id.toLowerCase().includes(q) ||
-          l.origin.toLowerCase().includes(q) ||
-          l.destination.toLowerCase().includes(q)
-        )
-        .slice(0, 4),
-      carriers: carriers.filter(c => c.toLowerCase().includes(q)).slice(0, 3),
-      shipments: mockShipments
-        .filter(s =>
-          s.id.toLowerCase().includes(q) ||
-          s.laneCode.toLowerCase().includes(q) ||
-          s.carrier.toLowerCase().includes(q)
-        )
-        .slice(0, 4),
-    }
-  }, [query])
+  const results = useMemo(
+    () => searchAll(query, { lanes: searchLanes ?? [], shipments: searchShipments ?? [], alerts: notifications }),
+    [query, searchLanes, searchShipments, notifications],
+  )
 
-  const hasResults = results.lanes.length > 0 || results.carriers.length > 0 || results.shipments.length > 0
+  const hasResults =
+    results.lanes.length > 0 || results.carriers.length > 0 || results.shipments.length > 0 || results.alerts.length > 0
 
   return (
     <header
@@ -216,6 +203,24 @@ export function Header() {
                       <span className="text-muted-foreground text-[11px]">{s.laneCode}</span>
                     </span>
                     <span className="text-[10px] text-[var(--text-muted)]">{s.currentLocation}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {results.alerts.length > 0 && (
+              <div className="py-1 border-t border-border">
+                <div className="px-3 pt-2 pb-1 font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground">Alerts</div>
+                {results.alerts.map(a => (
+                  <button
+                    key={a.id}
+                    onClick={() => { setSelectedAlert(a); setOpen(false); setQuery('') }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-[13px] hover:bg-secondary transition-colors"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: a.severity === 'critical' ? 'var(--danger)' : a.severity === 'warning' ? 'var(--warn)' : 'var(--info-c)' }} />
+                      <span className="truncate" style={{ color: 'var(--foreground)' }}>{a.title}</span>
+                    </span>
+                    {a.laneCode && <span className="text-[10px] text-[var(--text-muted)] shrink-0">{a.laneCode}</span>}
                   </button>
                 ))}
               </div>
