@@ -1,8 +1,10 @@
 ﻿'use client'
 
 import { useState } from 'react'
-import { mockAuditLog, type AuditLogEntry } from '@/lib/mock-data'
+import { type AuditLogEntry } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getAuditLog } from '@/lib/services/auditService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -62,13 +64,15 @@ function formatFullTimestamp(timestamp: string) {
 }
 
 export default function AuditLogPage() {
+  const { data: logs, loading, error } = useQuery(getAuditLog, [])
   const [actionFilter, setActionFilter] = useState<AuditLogEntry['action'] | 'all'>('all')
   const [userFilter, setUserFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const uniqueUsers = Array.from(new Set(mockAuditLog.map(entry => entry.userName)))
+  const allLogs = logs ?? []
+  const uniqueUsers = Array.from(new Set(allLogs.map(entry => entry.userName)))
 
-  const filteredLogs = mockAuditLog.filter(entry => {
+  const filteredLogs = allLogs.filter(entry => {
     if (actionFilter !== 'all' && entry.action !== actionFilter) return false
     if (userFilter !== 'all' && entry.userName !== userFilter) return false
     if (searchQuery) {
@@ -209,7 +213,11 @@ export default function AuditLogPage() {
 
       {/* Timeline */}
       <div className="border border-border overflow-hidden" style={{ background: "var(--card)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-1)" }}>
-        {filteredLogs.length === 0 ? (
+        {loading ? (
+          <div className="p-12 text-center"><p className="text-[13px] text-muted-foreground">Loading audit log…</p></div>
+        ) : error ? (
+          <div className="p-12 text-center"><p className="text-[13px]" style={{ color: 'var(--danger)' }}>Could not load audit log: {error}</p></div>
+        ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-[13px] text-muted-foreground">No audit log entries found</p>
           </div>
@@ -258,7 +266,7 @@ export default function AuditLogPage() {
 
       {/* Pagination info */}
       <div className="flex items-center justify-between text-[12px] text-muted-foreground">
-        <span>Showing {filteredLogs.length} of {mockAuditLog.length} entries</span>
+        <span>Showing {filteredLogs.length} of {allLogs.length} entries</span>
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
