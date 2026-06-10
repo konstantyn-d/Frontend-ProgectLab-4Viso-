@@ -2,8 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { mockLanes, mockPorts, mockTeam, mockDocuments, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
+import { mockPorts, mockTeam, mockDocuments, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getLaneDetail } from '@/lib/services/lanesService'
+import { getShipmentsForLane } from '@/lib/services/shipmentsService'
+import { getAlertsForLane } from '@/lib/services/alertsService'
+import { LaneHealthPanel } from '@/components/dashboard/lane-health-panel'
+import { RiskBreakdownCard } from '@/components/dashboard/risk-breakdown-card'
+import { ActiveShipmentsCard } from '@/components/dashboard/active-shipments-card'
 import { RouteEditModal } from '@/components/dashboard/route-edit-modal'
 import {
   ResponsiveContainer,
@@ -93,7 +100,10 @@ export default function LaneDetailPage() {
   const id = params?.id as string
 
   const [routeEditOpen, setRouteEditOpen] = useState(false)
-  const lane = mockLanes.find(l => l.id === id)
+  const { data: detail, loading } = useQuery(() => getLaneDetail(id), [id])
+  const { data: laneAlerts } = useQuery(() => getAlertsForLane(id), [id])
+  const { data: laneShipments } = useQuery(() => getShipmentsForLane(id), [id])
+  const lane = detail?.lane ?? null
 
   const tempHistory = useMemo(() => lane ? generateTempHistory(lane) : [], [lane])
   const waypoints = useMemo(() => lane ? getLaneWaypoints(lane) : [], [lane])
@@ -102,7 +112,17 @@ export default function LaneDetailPage() {
   // Single shipment lane for the interactive map (only this lane is shown).
   const mapLanes = useMemo(() => (lane ? lanesToShipmentLanes([lane], mockPorts) : []), [lane])
 
-  if (!lane) {
+  const openAlerts = (laneAlerts ?? []).filter(a => a.status === 'open' || a.status === 'assigned').length
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="text-[14px]" style={{ color: 'var(--muted-foreground)' }}>Loading lane…</p>
+      </div>
+    )
+  }
+
+  if (!lane || !detail) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <p className="text-[14px]" style={{ color: 'var(--muted-foreground)' }}>Lane not found</p>
@@ -116,7 +136,7 @@ export default function LaneDetailPage() {
     { k: 'Mode', v: lane.mode.charAt(0).toUpperCase() + lane.mode.slice(1) },
     { k: 'Temp Range', v: `${lane.tempMin}–${lane.tempMax}°C` },
     { k: 'Current Temp', v: `${lane.currentTemp}°C`, bad: lane.tempDeviation },
-    { k: 'Risk Score', v: `${lane.riskScore}%`, risk: lane.riskScore > 60 ? 'high' : lane.riskScore > 30 ? 'mid' : 'low' },
+    { k: 'Risk Score', v: `${detail.risk.score}%`, risk: detail.risk.score > 60 ? 'high' : detail.risk.score > 30 ? 'mid' : 'low' },
     { k: 'Last Updated', v: new Date(lane.lastUpdated).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) },
   ]
 
@@ -175,6 +195,11 @@ export default function LaneDetailPage() {
           <GhostButton><Pause className="w-[14px] h-[14px]" strokeWidth={1.5} /> Pause</GhostButton>
           <GhostButton><Archive className="w-[14px] h-[14px]" strokeWidth={1.5} /> Archive</GhostButton>
         </div>
+      </div>
+
+      {/* Lane Health */}
+      <div className="mb-[18px]">
+        <LaneHealthPanel lane={lane} risk={detail.risk} openAlerts={openAlerts} shipmentCount={laneShipments?.length ?? 0} />
       </div>
 
       {/* Waypoints */}
@@ -262,6 +287,12 @@ export default function LaneDetailPage() {
             </ResponsiveContainer>
           </div>
         </section>
+      </div>
+
+      {/* Risk breakdown + active shipments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px] mb-[18px] items-start">
+        <RiskBreakdownCard risk={detail.risk} />
+        <ActiveShipmentsCard laneCode={lane.id} />
       </div>
 
       {/* Lane Attributes */}
