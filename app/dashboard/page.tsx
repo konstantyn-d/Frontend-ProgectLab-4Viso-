@@ -66,18 +66,18 @@ export default function DashboardPage() {
             title="Global Network Map"
             sub={`Live cold-chain routes`}
             right={
-              <div className="flex items-center gap-4 text-[11.5px]" style={{ color: 'var(--muted-foreground)' }}>
+              <div className="hidden sm:flex items-center gap-4 text-[11.5px]" style={{ color: 'var(--muted-foreground)' }}>
                 <span className="flex items-center gap-[7px]">
                   <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--primary)' }} />
-                  Compliant
+                  On track
                 </span>
                 <span className="flex items-center gap-[7px]">
                   <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--warn)' }} />
-                  Warning
+                  Delayed
                 </span>
                 <span className="flex items-center gap-[7px]">
                   <span className="w-[14px] h-[2.5px] rounded-sm" style={{ background: 'var(--danger)' }} />
-                  High Risk
+                  Critical
                 </span>
               </div>
             }

@@ -15,7 +15,8 @@ import {
   Area,
   ComposedChart,
 } from 'recharts'
-import { ComposableMap, Geographies, Geography, Line as MapLine, Marker, Graticule } from 'react-simple-maps'
+import { LogisticsMap } from '@/components/map/LogisticsMap'
+import { lanesToShipmentLanes } from '@/components/map/mockLanes'
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -98,29 +99,8 @@ export default function LaneDetailPage() {
   const waypoints = useMemo(() => lane ? getLaneWaypoints(lane) : [], [lane])
   const events = useMemo(() => lane ? getLaneEvents(lane) : [], [lane])
 
-  const originPort = lane ? mockPorts.find(p => p.code === lane.originCode) : null
-  const destPort = lane ? mockPorts.find(p => p.code === lane.destinationCode) : null
-
-  const currentPosition = useMemo(() => {
-    if (!originPort || !destPort || !lane) return null
-    const t = lane.progress / 100
-    return {
-      lng: originPort.lng + (destPort.lng - originPort.lng) * t,
-      lat: originPort.lat + (destPort.lat - originPort.lat) * t,
-    }
-  }, [originPort, destPort, lane])
-
-  // Fit the map to the route: center on the midpoint, scale by distance
-  const mapView = useMemo(() => {
-    if (!originPort || !destPort) return { center: [0, 30] as [number, number], scale: 140 }
-    const midLng = (originPort.lng + destPort.lng) / 2
-    const midLat = (originPort.lat + destPort.lat) / 2
-    const dLng = Math.abs(originPort.lng - destPort.lng)
-    const dLat = Math.abs(originPort.lat - destPort.lat)
-    const span = Math.max(dLng, dLat * 1.4, 12)
-    const scale = Math.max(120, Math.min(420, 9000 / span))
-    return { center: [midLng, midLat] as [number, number], scale }
-  }, [originPort, destPort])
+  // Single shipment lane for the interactive map (only this lane is shown).
+  const mapLanes = useMemo(() => (lane ? lanesToShipmentLanes([lane], mockPorts) : []), [lane])
 
   if (!lane) {
     return (
@@ -130,8 +110,6 @@ export default function LaneDetailPage() {
       </div>
     )
   }
-
-  const routeColor = lane.tempDeviation ? 'var(--danger)' : 'var(--primary)'
 
   const attributes = [
     { k: 'Carrier', v: lane.carrier },
@@ -245,64 +223,8 @@ export default function LaneDetailPage() {
               </span>
             }
           />
-          <div className="h-[280px]" style={{ background: 'var(--map-bg)' }}>
-            <ComposableMap
-              projectionConfig={{ scale: mapView.scale, center: mapView.center }}
-              width={520}
-              height={280}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Graticule stroke="var(--map-grid)" strokeWidth={0.5} />
-              <Geographies geography={geoUrl}>
-                {({ geographies }) =>
-                  geographies.map(geo => (
-                    <Geography key={geo.rsmKey} geography={geo} style={{
-                      default: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
-                      hover: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
-                      pressed: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
-                    }} />
-                  ))
-                }
-              </Geographies>
-              {originPort && destPort && (
-                <>
-                  <MapLine
-                    from={[originPort.lng, originPort.lat]}
-                    to={[destPort.lng, destPort.lat]}
-                    stroke={routeColor}
-                    strokeWidth={1.6}
-                    strokeOpacity={0.55}
-                    strokeLinecap="round"
-                    style={{ vectorEffect: 'non-scaling-stroke' } as React.CSSProperties}
-                  />
-                  <MapLine
-                    from={[originPort.lng, originPort.lat]}
-                    to={[destPort.lng, destPort.lat]}
-                    stroke={routeColor}
-                    strokeWidth={2.2}
-                    strokeOpacity={0.9}
-                    strokeLinecap="round"
-                    className="map-flow-line"
-                    style={{ vectorEffect: 'non-scaling-stroke' } as React.CSSProperties}
-                  />
-                  {[originPort, destPort].map(port => (
-                    <Marker key={port.code} coordinates={[port.lng, port.lat]}>
-                      <circle r={2.6} fill="var(--primary)" style={{ stroke: 'var(--card)', strokeWidth: 0.8 }} />
-                      <text textAnchor="middle" y={-8} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fill: 'var(--text-body)', letterSpacing: '0.05em' }}>{port.code}</text>
-                    </Marker>
-                  ))}
-                  {currentPosition && lane.status !== 'arrived' && (
-                    <Marker coordinates={[currentPosition.lng, currentPosition.lat]}>
-                      <circle r={3} fill="none" stroke={routeColor} strokeWidth={1.2}>
-                        <animate attributeName="r" from="3" to="13" dur="1.5s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" from="0.7" to="0" dur="1.5s" repeatCount="indefinite" />
-                      </circle>
-                      <circle r={3.4} fill={routeColor} style={{ stroke: 'var(--card)', strokeWidth: 1 }} />
-                    </Marker>
-                  )}
-                </>
-              )}
-            </ComposableMap>
+          <div className="h-[300px]">
+            <LogisticsMap lanes={mapLanes} singleLane hideLegend height="100%" />
           </div>
         </section>
 
