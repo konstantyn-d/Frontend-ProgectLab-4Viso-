@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { mockAudits, regionCompliance, complianceTrend, type Audit } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getComplianceSummary } from '@/lib/services/complianceService'
 import {
   BarChart,
   Bar,
@@ -31,12 +33,13 @@ const statusConfig: Record<Audit['status'], {
 
 export default function CompliancePage() {
   const [expanded, setExpanded] = useState<string | null>(null)
+  const { data: summary } = useQuery(getComplianceSummary, [])
 
   const metrics = [
-    { label: 'GDP Compliance Rate', value: '94.2', suffix: '%', delta: '+1.8%', deltaColor: 'var(--primary)' },
-    { label: 'Audits Completed', value: '48', delta: 'This month', deltaColor: 'var(--muted-foreground)' },
-    { label: 'Open Issues', value: '3', delta: '-2 from last week', deltaColor: 'var(--primary)' },
-    { label: 'Pass Rate (90d)', value: '92', suffix: '%', delta: '+0.4%', deltaColor: 'var(--primary)' },
+    { label: 'GDP Compliance Rate', value: summary ? String(summary.gdpComplianceRate) : '—', suffix: '%', delta: 'Across active lanes', deltaColor: 'var(--primary)' },
+    { label: 'Audits Completed', value: summary ? String(summary.auditsCompleted) : '—', delta: 'Logged events', deltaColor: 'var(--muted-foreground)' },
+    { label: 'Open Issues', value: summary ? String(summary.openIssues) : '—', delta: summary && summary.openIssues > 0 ? 'Require attention' : 'All clear', deltaColor: summary && summary.openIssues > 0 ? 'var(--warn)' : 'var(--primary)' },
+    { label: 'Pass Rate', value: summary ? String(summary.passRate) : '—', suffix: '%', delta: 'Low-risk & compliant', deltaColor: 'var(--primary)' },
   ]
 
   return (
