@@ -1,8 +1,10 @@
 'use client'
 
-import { dashboardStats, sparklines } from '@/lib/mock-data'
+import { sparklines } from '@/lib/mock-data'
 import { TrendingUp, TrendingDown, Minus, Route, ShieldCheck, Thermometer, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getLanes } from '@/lib/services/lanesService'
 
 /* Minimal SVG sparkline — no chart library overhead */
 function Sparkline({ data, color = 'var(--primary)' }: { data: number[]; color?: string }) {
@@ -128,41 +130,65 @@ function KPICard({ icon, iconVariant = 'accent', title, value, suffix, trend, tr
   )
 }
 
+function KPISkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[18px]">
+      {[0, 1, 2, 3].map(i => (
+        <div key={i} className="border border-border shimmer" style={{ background: 'var(--card)', borderRadius: 'var(--r-lg)', height: 146, boxShadow: 'var(--shadow-1)' }} />
+      ))}
+    </div>
+  )
+}
+
 export function KPICards() {
+  const { data: lanes, loading, error } = useQuery(getLanes, [])
+
+  if (loading) return <KPISkeleton />
+  if (error || !lanes) {
+    return (
+      <div className="border border-border p-5 text-[13px]" style={{ background: 'var(--card)', borderRadius: 'var(--r-lg)', color: 'var(--danger)' }}>
+        Could not load lane metrics{error ? `: ${error}` : ''}.
+      </div>
+    )
+  }
+
+  const total = lanes.length
+  const activeLanes = lanes.filter(l => l.status !== 'arrived').length
+  const compliant = lanes.filter(l => l.gdpCompliant).length
+  const gdpRate = total ? Math.round((compliant / total) * 1000) / 10 : 0
+  const tempDeviations = lanes.filter(l => l.tempDeviation).length
+  const highRisk = lanes.filter(l => l.riskScore > 60).length
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[18px] reveal-stagger">
       <KPICard
         icon={<Route className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         title="Active Lanes"
-        value={dashboardStats.activeLanes}
-        trend={dashboardStats.activeLanesTrend}
-        trendLabel="vs last week"
+        value={activeLanes}
+        trendLabel={`of ${total} total`}
         sparkData={sparklines.activeLanes}
       />
       <KPICard
         icon={<ShieldCheck className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         title="GDP Compliant"
-        value={dashboardStats.gdpCompliant}
+        value={gdpRate}
         suffix="%"
-        trend={dashboardStats.gdpCompliantTrend}
-        trendLabel="vs last week"
+        trendLabel={`${compliant} of ${total} lanes`}
         sparkData={sparklines.gdpCompliant}
       />
       <KPICard
         icon={<Thermometer className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         iconVariant="danger"
         title="Temp Deviations"
-        value={dashboardStats.temperatureDeviations}
-        trend={dashboardStats.temperatureDeviationsTrend}
-        trendLabel="vs last week"
+        value={tempDeviations}
+        trendLabel={tempDeviations ? 'Active deviations' : 'All within range'}
         sparkData={sparklines.tempDeviations}
-        invertTrend
       />
       <KPICard
         icon={<AlertTriangle className="w-[17px] h-[17px]" strokeWidth={1.6} />}
         iconVariant="warn"
         title="High Risk Lanes"
-        value={dashboardStats.highRiskLanes}
+        value={highRisk}
         trendLabel="Requires attention"
         sparkData={sparklines.highRiskLanes}
       />

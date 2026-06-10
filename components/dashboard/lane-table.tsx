@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { mockLanes as initialLanes, type Lane, type TransportMode } from '@/lib/mock-data'
+import { type Lane, type TransportMode } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getLanes } from '@/lib/services/lanesService'
 import {
   Plane,
   Ship,
@@ -98,10 +100,14 @@ const modeFilters: { k: TransportMode | 'all'; label: string; icon?: React.React
 
 export function LaneTable() {
   const router = useRouter()
-  const [lanes, setLanes] = useState<Lane[]>(initialLanes)
+  const { data: loadedLanes, loading, error } = useQuery(getLanes, [])
+  const [lanes, setLanes] = useState<Lane[]>([])
   const [filterMode, setFilterMode] = useState<TransportMode | 'all'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingLane, setEditingLane] = useState<Lane | null>(null)
+
+  // Seed local (client-editable) state from the service once loaded.
+  useEffect(() => { if (loadedLanes) setLanes(loadedLanes) }, [loadedLanes])
 
   const filteredLanes = filterMode === 'all' ? lanes : lanes.filter(l => l.mode === filterMode)
 
@@ -181,7 +187,16 @@ export function LaneTable() {
             </tr>
           </thead>
           <tbody>
-            {filteredLanes.map((lane, index) => (
+            {loading && (
+              <tr><td colSpan={9} className="px-[18px] py-10 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>Loading lanes…</td></tr>
+            )}
+            {!loading && error && (
+              <tr><td colSpan={9} className="px-[18px] py-10 text-center text-[13px]" style={{ color: 'var(--danger)' }}>Could not load lanes: {error}</td></tr>
+            )}
+            {!loading && !error && filteredLanes.length === 0 && (
+              <tr><td colSpan={9} className="px-[18px] py-10 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>No lanes match this filter.</td></tr>
+            )}
+            {!loading && !error && filteredLanes.map((lane, index) => (
               <tr
                 key={lane.id}
                 onClick={() => handleViewDetails(lane)}
