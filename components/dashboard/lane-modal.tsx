@@ -119,10 +119,10 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[520px] bg-[#111111] border-[#222222] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[520px] bg-card border-border p-0 overflow-hidden">
         <DialogHeader className="p-5 pb-0">
-          <DialogTitle className="text-[15px] font-medium text-[#F5F5F5] flex items-center gap-2">
-            {isEditMode && <Pencil className="w-4 h-4 text-[#6B6B6B]" />}
+          <DialogTitle className="text-[15px] font-medium text-foreground flex items-center gap-2">
+            {isEditMode && <Pencil className="w-4 h-4 text-muted-foreground" />}
             {isEditMode ? 'Edit Transport Lane' : 'Add New Transport Lane'}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -140,21 +140,21 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
                 <div className={cn(
                   'w-6 h-6 flex items-center justify-center text-[11px] transition-colors',
                   step >= s 
-                    ? 'bg-[#F5F5F5] text-[#0A0A0A]' 
-                    : 'bg-[#1A1A1A] text-[#6B6B6B]'
+                    ? 'bg-foreground text-background' 
+                    : 'bg-secondary text-muted-foreground'
                 )}>
                   {step > s ? <Check className="w-3 h-3" /> : s}
                 </div>
                 {s < 3 && (
                   <div className={cn(
                     'flex-1 h-px',
-                    step > s ? 'bg-[#F5F5F5]' : 'bg-[#222222]'
+                    step > s ? 'bg-foreground' : 'bg-border'
                   )} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2 text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+          <div className="flex justify-between mt-2 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
             <span>Mode</span>
             <span>Route</span>
             <span>Alerts</span>
@@ -166,7 +166,7 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
           {/* Step 1: Select Transport Mode */}
           {step === 1 && (
             <div className="space-y-3">
-              <p className="text-[13px] text-[#6B6B6B] mb-4">
+              <p className="text-[13px] text-muted-foreground mb-4">
                 {isEditMode ? 'Update the transport mode' : 'Select the primary transport mode'}
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -176,20 +176,20 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
                     onClick={() => setSelectedMode(mode)}
                     className={cn(
                       'p-4 text-left transition-all border',
-                      'hover:border-[#2E2E2E]',
+                      'hover:border-[var(--border-hover)]',
                       selectedMode === mode 
-                        ? 'border-[#F5F5F5] bg-[#1A1A1A]' 
-                        : 'border-[#222222] bg-[#0A0A0A]'
+                        ? 'border-foreground bg-secondary' 
+                        : 'border-border bg-background'
                     )}
                   >
                     <div className={cn(
                       'mb-2',
-                      selectedMode === mode ? 'text-[#F5F5F5]' : 'text-[#6B6B6B]'
+                      selectedMode === mode ? 'text-foreground' : 'text-muted-foreground'
                     )}>
                       {icon}
                     </div>
-                    <div className="text-[13px] text-[#F5F5F5]">{label}</div>
-                    <div className="text-[11px] text-[#3D3D3D] mt-1">{description}</div>
+                    <div className="text-[13px] text-foreground">{label}</div>
+                    <div className="text-[11px] text-[var(--text-muted)] mt-1">{description}</div>
                   </button>
                 ))}
               </div>
@@ -199,31 +199,31 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
           {/* Step 2: Route Details */}
           {step === 2 && (
             <div className="space-y-4">
-              <p className="text-[13px] text-[#6B6B6B] mb-4">
+              <p className="text-[13px] text-muted-foreground mb-4">
                 {isEditMode ? 'Update route and temperature requirements' : 'Configure route and temperature requirements'}
               </p>
               
               <div className="grid grid-cols-2 gap-3">
                 <FieldGroup>
                   <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Origin Port</FieldLabel>
+                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Origin Port</FieldLabel>
                     <div className="relative">
                       <Input
                         placeholder="Search ports..."
                         value={originPort}
                         onChange={(e) => setOriginPort(e.target.value)}
-                        className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222]"
+                        className="h-9 text-[13px] bg-background border-border"
                       />
                       {originPort && !originPort.includes(' - ') && filteredOriginPorts.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#111111] border border-[#222222] max-h-32 overflow-auto z-10">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border max-h-32 overflow-auto z-10">
                           {filteredOriginPorts.slice(0, 5).map((port) => (
                             <button
                               key={port.code}
                               onClick={() => setOriginPort(`${port.code} - ${port.name}`)}
-                              className="w-full px-3 py-2 text-left text-[12px] hover:bg-[#1A1A1A] transition-colors"
+                              className="w-full px-3 py-2 text-left text-[12px] hover:bg-secondary transition-colors"
                             >
-                              <span className="font-mono text-[#F5F5F5]">{port.code}</span>
-                              <span className="text-[#6B6B6B] ml-2">{port.name}</span>
+                              <span className="font-mono text-foreground">{port.code}</span>
+                              <span className="text-muted-foreground ml-2">{port.name}</span>
                             </button>
                           ))}
                         </div>
@@ -234,24 +234,24 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
 
                 <FieldGroup>
                   <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Destination Port</FieldLabel>
+                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Destination Port</FieldLabel>
                     <div className="relative">
                       <Input
                         placeholder="Search ports..."
                         value={destPort}
                         onChange={(e) => setDestPort(e.target.value)}
-                        className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222]"
+                        className="h-9 text-[13px] bg-background border-border"
                       />
                       {destPort && !destPort.includes(' - ') && filteredDestPorts.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#111111] border border-[#222222] max-h-32 overflow-auto z-10">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border max-h-32 overflow-auto z-10">
                           {filteredDestPorts.slice(0, 5).map((port) => (
                             <button
                               key={port.code}
                               onClick={() => setDestPort(`${port.code} - ${port.name}`)}
-                              className="w-full px-3 py-2 text-left text-[12px] hover:bg-[#1A1A1A] transition-colors"
+                              className="w-full px-3 py-2 text-left text-[12px] hover:bg-secondary transition-colors"
                             >
-                              <span className="font-mono text-[#F5F5F5]">{port.code}</span>
-                              <span className="text-[#6B6B6B] ml-2">{port.name}</span>
+                              <span className="font-mono text-foreground">{port.code}</span>
+                              <span className="text-muted-foreground ml-2">{port.name}</span>
                             </button>
                           ))}
                         </div>
@@ -263,21 +263,21 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
 
               <FieldGroup>
                 <Field>
-                  <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Carrier</FieldLabel>
+                  <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Carrier</FieldLabel>
                   <div className="relative">
                     <Input
                       placeholder="Select carrier..."
                       value={carrier}
                       onChange={(e) => setCarrier(e.target.value)}
-                      className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222]"
+                      className="h-9 text-[13px] bg-background border-border"
                     />
                     {carrier && !carriers.includes(carrier) && filteredCarriers.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#111111] border border-[#222222] max-h-32 overflow-auto z-10">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border max-h-32 overflow-auto z-10">
                         {filteredCarriers.slice(0, 5).map((c) => (
                           <button
                             key={c}
                             onClick={() => setCarrier(c)}
-                            className="w-full px-3 py-2 text-left text-[12px] text-[#A0A0A0] hover:bg-[#1A1A1A] transition-colors"
+                            className="w-full px-3 py-2 text-left text-[12px] text-[var(--text-body)] hover:bg-secondary transition-colors"
                           >
                             {c}
                           </button>
@@ -291,23 +291,23 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
               <div className="grid grid-cols-2 gap-3">
                 <FieldGroup>
                   <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Min Temp (°C)</FieldLabel>
+                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Min Temp (°C)</FieldLabel>
                     <Input
                       type="number"
                       value={tempMin}
                       onChange={(e) => setTempMin(e.target.value)}
-                      className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222]"
+                      className="h-9 text-[13px] bg-background border-border"
                     />
                   </Field>
                 </FieldGroup>
                 <FieldGroup>
                   <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Max Temp (°C)</FieldLabel>
+                    <FieldLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Max Temp (°C)</FieldLabel>
                     <Input
                       type="number"
                       value={tempMax}
                       onChange={(e) => setTempMax(e.target.value)}
-                      className="h-9 text-[13px] bg-[#0A0A0A] border-[#222222]"
+                      className="h-9 text-[13px] bg-background border-border"
                     />
                   </Field>
                 </FieldGroup>
@@ -318,7 +318,7 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
           {/* Step 3: Notifications */}
           {step === 3 && (
             <div className="space-y-3">
-              <p className="text-[13px] text-[#6B6B6B] mb-4">
+              <p className="text-[13px] text-muted-foreground mb-4">
                 {isEditMode ? 'Update notification preferences' : 'Configure notification preferences'}
               </p>
 
@@ -347,17 +347,17 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
               </div>
 
               {/* Summary */}
-              <div className="mt-5 p-4 bg-[#0A0A0A] border border-[#222222]">
-                <h4 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-3">Summary</h4>
+              <div className="mt-5 p-4 bg-background border border-border">
+                <h4 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">Summary</h4>
                 <div className="grid grid-cols-2 gap-2 text-[12px]">
-                  <span className="text-[#6B6B6B]">Mode:</span>
-                  <span className="text-[#A0A0A0] capitalize">{selectedMode}</span>
-                  <span className="text-[#6B6B6B]">Route:</span>
-                  <span className="text-[#A0A0A0]">{originPort.split(' - ')[0]} to {destPort.split(' - ')[0]}</span>
-                  <span className="text-[#6B6B6B]">Carrier:</span>
-                  <span className="text-[#A0A0A0]">{carrier}</span>
-                  <span className="text-[#6B6B6B]">Temperature:</span>
-                  <span className="text-[#A0A0A0]">{tempMin}°C - {tempMax}°C</span>
+                  <span className="text-muted-foreground">Mode:</span>
+                  <span className="text-[var(--text-body)] capitalize">{selectedMode}</span>
+                  <span className="text-muted-foreground">Route:</span>
+                  <span className="text-[var(--text-body)]">{originPort.split(' - ')[0]} to {destPort.split(' - ')[0]}</span>
+                  <span className="text-muted-foreground">Carrier:</span>
+                  <span className="text-[var(--text-body)]">{carrier}</span>
+                  <span className="text-muted-foreground">Temperature:</span>
+                  <span className="text-[var(--text-body)]">{tempMin}°C - {tempMax}°C</span>
                 </div>
               </div>
             </div>
@@ -365,11 +365,11 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-5 border-t border-[#222222]">
+        <div className="flex items-center justify-between p-5 border-t border-border">
           <Button
             variant="ghost"
             onClick={() => step > 1 ? setStep((step - 1) as Step) : handleClose(false)}
-            className="h-8 text-[12px] text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#1A1A1A]"
+            className="h-8 text-[12px] text-muted-foreground hover:text-foreground hover:bg-secondary"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-2" />
             {step === 1 ? 'Cancel' : 'Back'}
@@ -380,7 +380,7 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
               onClick={() => setStep((step + 1) as Step)}
               disabled={!canProceed()}
               variant="outline"
-              className="h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+              className="h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
             >
               Next
               <ArrowRight className="w-3.5 h-3.5 ml-2" />
@@ -388,7 +388,7 @@ export function LaneModal({ open, onOpenChange, lane, onSave }: LaneModalProps) 
           ) : (
             <Button
               onClick={handleSubmit}
-              className="h-8 text-[12px] bg-[#F5F5F5] text-[#0A0A0A] hover:bg-[#E5E5E5]"
+              className="h-8 text-[12px] bg-foreground text-background hover:opacity-90"
             >
               <Check className="w-3.5 h-3.5 mr-2" />
               {isEditMode ? 'Save Changes' : 'Create Lane'}
@@ -419,27 +419,27 @@ function NotificationToggle({
       className={cn(
         'w-full flex items-center gap-3 p-3 transition-all text-left border',
         checked 
-          ? 'border-[#F5F5F5] bg-[#1A1A1A]' 
-          : 'border-[#222222] bg-[#0A0A0A] hover:border-[#2E2E2E]'
+          ? 'border-foreground bg-secondary' 
+          : 'border-border bg-background hover:border-[var(--border-hover)]'
       )}
     >
       <div className={cn(
         'w-8 h-8 flex items-center justify-center',
-        checked ? 'text-[#F5F5F5]' : 'text-[#6B6B6B]'
+        checked ? 'text-foreground' : 'text-muted-foreground'
       )}>
         {icon}
       </div>
       <div className="flex-1">
-        <div className="text-[13px] text-[#F5F5F5]">{label}</div>
-        <div className="text-[11px] text-[#3D3D3D]">{description}</div>
+        <div className="text-[13px] text-foreground">{label}</div>
+        <div className="text-[11px] text-[var(--text-muted)]">{description}</div>
       </div>
       <div className={cn(
         'w-8 h-5 transition-colors relative',
-        checked ? 'bg-[#F5F5F5]' : 'bg-[#222222]'
+        checked ? 'bg-foreground' : 'bg-border'
       )}>
         <div className={cn(
           'absolute top-0.5 w-4 h-4 transition-transform',
-          checked ? 'translate-x-3.5 bg-[#0A0A0A]' : 'translate-x-0.5 bg-[#6B6B6B]'
+          checked ? 'translate-x-3.5 bg-background' : 'translate-x-0.5 bg-muted-foreground'
         )} />
       </div>
     </button>

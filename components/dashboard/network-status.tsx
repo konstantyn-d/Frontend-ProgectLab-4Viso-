@@ -28,15 +28,15 @@ const statusBorderColors = {
 
 export function NetworkStatus() {
   return (
-    <div className="bg-[#111111] border border-[#222222]">
+    <div className="bg-card border border-border">
       {/* Header */}
-      <div className="grid grid-cols-6 px-4 py-3 border-b border-[#1A1A1A]">
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Corridor</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Active Lanes</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Avg Risk</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Compliance</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Throughput</span>
-        <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Status</span>
+      <div className="grid grid-cols-6 px-4 py-3 border-b border-border">
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Corridor</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Active Lanes</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Avg Risk</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Throughput</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Status</span>
       </div>
 
       {/* Rows */}
@@ -46,19 +46,19 @@ export function NetworkStatus() {
           className={cn(
             'grid grid-cols-6 px-4 py-4 border-l-4 items-center',
             statusBorderColors[row.status],
-            index !== corridors.length - 1 && 'border-b border-[#1A1A1A]'
+            index !== corridors.length - 1 && 'border-b border-border'
           )}
         >
-          <span className="text-[13px] text-[#F5F5F5] font-mono">{row.corridor}</span>
-          <span className="text-[13px] text-[#A0A0A0]">{row.activeLanes}</span>
+          <span className="text-[13px] text-foreground font-mono">{row.corridor}</span>
+          <span className="text-[13px] text-[var(--text-body)]">{row.activeLanes}</span>
           <span className={cn(
             'text-[13px]',
-            row.avgRisk > 60 ? 'text-[#E53E3E]' : 'text-[#A0A0A0]'
+            row.avgRisk > 60 ? 'text-[#E53E3E]' : 'text-[var(--text-body)]'
           )}>
             {row.avgRisk}%
           </span>
-          <span className="text-[13px] text-[#A0A0A0]">{row.compliance}%</span>
-          <span className="text-[13px] text-[#A0A0A0]">{row.throughput}</span>
+          <span className="text-[13px] text-[var(--text-body)]">{row.compliance}%</span>
+          <span className="text-[13px] text-[var(--text-body)]">{row.throughput}</span>
           <span className={cn(
             'text-[10px] uppercase tracking-[0.08em]',
             row.status === 'compliant' && 'text-[#2D6A4F]',

@@ -172,23 +172,23 @@ export function LaneTable() {
   }
 
   return (
-    <div className="bg-[#111111] border border-[#222222]">
+    <div className="bg-card border border-border">
       {/* Table Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1A1A1A]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+                className="gap-2 h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
               >
                 <Filter className="w-3.5 h-3.5" strokeWidth={1.5} />
                 {filterMode === 'all' ? 'All Modes' : modeLabels[filterMode]}
                 <ChevronDown className="w-3.5 h-3.5" strokeWidth={1.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#0A0A0A] border-[#222222]">
+            <DropdownMenuContent className="bg-background border-border">
               <DropdownMenuItem onClick={() => setFilterMode('all')} className="text-[13px]">All Modes</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilterMode('air')} className="text-[13px]"><Plane className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Air</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilterMode('sea')} className="text-[13px]"><Ship className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Sea</DropdownMenuItem>
@@ -196,7 +196,7 @@ export function LaneTable() {
               <DropdownMenuItem onClick={() => setFilterMode('multimodal')} className="text-[13px]"><Layers className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Multimodal</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="text-[12px] text-[#6B6B6B]">{filteredLanes.length} lanes</span>
+          <span className="text-[12px] text-muted-foreground">{filteredLanes.length} lanes</span>
         </div>
         <Button
           size="sm"
@@ -212,16 +212,16 @@ export function LaneTable() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-[#1A1A1A]">
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Mode</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Route</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Carrier</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Progress</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Temperature</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">GDP</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Risk</th>
-              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Status</th>
-              <th className="text-right text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] px-4 py-3 font-medium">Actions</th>
+            <tr className="border-b border-border">
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Mode</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Route</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Carrier</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Progress</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Temperature</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">GDP</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Risk</th>
+              <th className="text-left text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Status</th>
+              <th className="text-right text-[10px] uppercase tracking-[0.08em] text-muted-foreground px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -231,25 +231,25 @@ export function LaneTable() {
                 onClick={() => handleViewDetails(lane)}
                 className={cn(
                   'h-[52px] hover:bg-[rgba(16,185,129,0.04)] group cursor-pointer',
-                  index !== filteredLanes.length - 1 && 'border-b border-[#1A1A1A]'
+                  index !== filteredLanes.length - 1 && 'border-b border-border'
                 )}
               >
-                <td className="px-4"><div className="text-[#6B6B6B] group-hover:text-[#10B981]">{modeIcons[lane.mode]}</div></td>
+                <td className="px-4"><div className="text-muted-foreground group-hover:text-[#10B981]">{modeIcons[lane.mode]}</div></td>
                 <td className="px-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[14px] text-[#F5F5F5] font-semibold">{lane.originCode}</span>
-                    <span className="text-[#3D3D3D]">→</span>
-                    <span className="font-mono text-[14px] text-[#F5F5F5] font-semibold">{lane.destinationCode}</span>
+                    <span className="font-mono text-[14px] text-foreground font-semibold">{lane.originCode}</span>
+                    <span className="text-[var(--text-muted)]">→</span>
+                    <span className="font-mono text-[14px] text-foreground font-semibold">{lane.destinationCode}</span>
                   </div>
                 </td>
-                <td className="px-4"><span className="text-[12px] text-[#A0A0A0]">{lane.carrier}</span></td>
+                <td className="px-4"><span className="text-[12px] text-[var(--text-body)]">{lane.carrier}</span></td>
                 <td className="px-4 min-w-[140px]">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#6B6B6B] capitalize">{lane.milestone.replace('-', ' ')}</span>
-                      <span className="text-[#6B6B6B]">{lane.progress}%</span>
+                      <span className="text-muted-foreground capitalize">{lane.milestone.replace('-', ' ')}</span>
+                      <span className="text-muted-foreground">{lane.progress}%</span>
                     </div>
-                    <div className="h-0.5 bg-[#222222] overflow-hidden">
+                    <div className="h-0.5 bg-border overflow-hidden">
                       <div
                         className={cn(
                           'h-full',
@@ -261,9 +261,9 @@ export function LaneTable() {
                   </div>
                 </td>
                 <td className="px-4">
-                  <span className={cn('text-[12px]', lane.tempDeviation ? 'text-[#E53E3E]' : 'text-[#A0A0A0]')}>
-                    <span className="text-[#F5F5F5]">{lane.currentTemp}°C</span>
-                    <span className="text-[#3D3D3D]"> / {lane.tempMin}–{lane.tempMax}°C</span>
+                  <span className={cn('text-[12px]', lane.tempDeviation ? 'text-[#E53E3E]' : 'text-[var(--text-body)]')}>
+                    <span className="text-foreground">{lane.currentTemp}°C</span>
+                    <span className="text-[var(--text-muted)]"> / {lane.tempMin}–{lane.tempMax}°C</span>
                   </span>
                 </td>
                 <td className="px-4"><GdpBadge compliant={lane.gdpCompliant} /></td>
@@ -280,13 +280,13 @@ export function LaneTable() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#222222]"
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground hover:bg-border"
                         >
                           <MoreHorizontal className="w-3.5 h-3.5" strokeWidth={1.5} />
                           <span className="sr-only">More actions</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#0A0A0A] border-[#222222]">
+                      <DropdownMenuContent align="end" className="bg-background border-border">
                         <DropdownMenuItem onClick={() => handleViewDetails(lane)} className="text-[13px] gap-2">
                           <Eye className="w-3.5 h-3.5" strokeWidth={1.5} /> View Details
                         </DropdownMenuItem>
@@ -302,7 +302,7 @@ export function LaneTable() {
                         <DropdownMenuItem className="text-[13px] gap-2">
                           <Archive className="w-3.5 h-3.5" strokeWidth={1.5} /> Archive
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-[#222222]" />
+                        <DropdownMenuSeparator className="bg-border" />
                         <DropdownMenuItem
                           onClick={() => handleDeleteLane(lane.id)}
                           className="text-[13px] gap-2 text-[#E53E3E] focus:text-[#E53E3E] focus:bg-[rgba(229,62,62,0.1)]"

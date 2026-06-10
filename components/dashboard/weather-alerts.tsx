@@ -19,12 +19,12 @@ const severityStyles = {
 
 export function WeatherAlerts() {
   return (
-    <div className="bg-[#111111] border border-[#222222]">
-      <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
-        <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Weather & Route Alerts</h2>
-        <span className="text-[10px] text-[#3D3D3D]">{weatherAlerts.length} active</span>
+    <div className="bg-card border border-border">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Weather & Route Alerts</h2>
+        <span className="text-[10px] text-[var(--text-muted)]">{weatherAlerts.length} active</span>
       </div>
-      <div className="divide-y divide-[#1A1A1A]">
+      <div className="divide-y divide-border">
         {weatherAlerts.map(alert => {
           const style = severityStyles[alert.severity]
           return (
@@ -38,11 +38,11 @@ export function WeatherAlerts() {
                   <span className={cn('text-[10px] uppercase tracking-[0.08em]', style.text)}>
                     {alert.region}
                   </span>
-                  <span className="text-[10px] text-[#3D3D3D] font-mono">
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">
                     {alert.affectedLanes.join(', ')}
                   </span>
                 </div>
-                <p className="text-[12px] text-[#A0A0A0] leading-snug">{alert.message}</p>
+                <p className="text-[12px] text-[var(--text-body)] leading-snug">{alert.message}</p>
               </div>
             </div>
           )

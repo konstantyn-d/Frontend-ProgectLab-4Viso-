@@ -19,7 +19,7 @@ export function LiveIndicator() {
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#10B981]" />
       </span>
       <span className="text-[10px] uppercase tracking-[0.08em] text-[#10B981]">Live</span>
-      <span className="text-[10px] text-[#6B6B6B]">Updated {seconds}s ago</span>
+      <span className="text-[10px] text-muted-foreground">Updated {seconds}s ago</span>
     </div>
   )
 }

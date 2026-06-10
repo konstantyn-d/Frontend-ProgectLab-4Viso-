@@ -34,7 +34,7 @@ export default function CompliancePage() {
 
   const metrics = [
     { label: 'GDP Compliance Rate', value: '94.2', suffix: '%', delta: '+1.8%', deltaColor: '#10B981' },
-    { label: 'Audits Completed', value: '48', delta: 'This month', deltaColor: '#6B6B6B' },
+    { label: 'Audits Completed', value: '48', delta: 'This month', deltaColor: 'var(--muted-foreground)' },
     { label: 'Open Issues', value: '3', delta: '-2 from last week', deltaColor: '#10B981' },
     { label: 'Pass Rate (90d)', value: '92', suffix: '%', delta: '+0.4%', deltaColor: '#10B981' },
   ]
@@ -42,8 +42,8 @@ export default function CompliancePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[20px] font-medium text-[#F5F5F5]">Compliance</h1>
-        <p className="text-[14px] text-[#6B6B6B] mt-1">
+        <h1 className="text-[20px] font-medium text-foreground">Compliance</h1>
+        <p className="text-[14px] text-muted-foreground mt-1">
           Monitor GDP compliance and regulatory requirements
         </p>
       </div>
@@ -51,11 +51,11 @@ export default function CompliancePage() {
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric) => (
-          <div key={metric.label} className="bg-[#111111] border border-[#222222] p-5">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-3">{metric.label}</p>
+          <div key={metric.label} className="bg-card border border-border p-5">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">{metric.label}</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-[32px] font-light text-[#F5F5F5] leading-none">{metric.value}</span>
-              {metric.suffix && <span className="text-[14px] text-[#6B6B6B]">{metric.suffix}</span>}
+              <span className="text-[32px] font-light text-foreground leading-none">{metric.value}</span>
+              {metric.suffix && <span className="text-[14px] text-muted-foreground">{metric.suffix}</span>}
             </div>
             <p className="text-[12px] mt-2" style={{ color: metric.deltaColor }}>{metric.delta}</p>
           </div>
@@ -63,11 +63,11 @@ export default function CompliancePage() {
       </div>
 
       {/* Compliance trend - 12 weeks */}
-      <div className="bg-[#111111] border border-[#222222]">
-        <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
+      <div className="bg-card border border-border">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Compliance Trend</h2>
-            <p className="text-[12px] text-[#3D3D3D] mt-1">12-week rolling window</p>
+            <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance Trend</h2>
+            <p className="text-[12px] text-[var(--text-muted)] mt-1">12-week rolling window</p>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-[24px] font-light text-[#10B981]">94.2%</span>
@@ -83,10 +83,10 @@ export default function CompliancePage() {
                   <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 2" stroke="#1A1A1A" vertical={false} />
-              <XAxis dataKey="week" stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={{ stroke: '#222222' }} tickLine={false} />
-              <YAxis domain={[88, 96]} stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#0A0A0A', border: '1px solid #222222', fontSize: 12 }} labelStyle={{ color: '#6B6B6B' }} />
+              <CartesianGrid strokeDasharray="2 2" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="week" stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+              <YAxis domain={[88, 96]} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: 'var(--background)', border: '1px solid var(--border)', fontSize: 12 }} labelStyle={{ color: 'var(--muted-foreground)' }} />
               <Area type="monotone" dataKey="rate" stroke="#10B981" strokeWidth={1.5} fill="url(#cmpGradient)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -95,18 +95,18 @@ export default function CompliancePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Compliance by Region */}
-        <div className="bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A]">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Compliance by Region</h2>
-            <p className="text-[12px] text-[#3D3D3D] mt-1">Distribution of lane compliance levels</p>
+        <div className="bg-card border border-border">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Compliance by Region</h2>
+            <p className="text-[12px] text-[var(--text-muted)] mt-1">Distribution of lane compliance levels</p>
           </div>
           <div className="h-[320px] px-4 py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={regionCompliance} layout="vertical" barCategoryGap={8}>
-                <CartesianGrid strokeDasharray="2 2" stroke="#1A1A1A" horizontal={false} />
-                <XAxis type="number" stroke="#3D3D3D" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={{ stroke: '#222222' }} tickLine={false} />
-                <YAxis dataKey="region" type="category" stroke="#3D3D3D" tick={{ fontSize: 11, fill: '#A0A0A0' }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip contentStyle={{ background: '#0A0A0A', border: '1px solid #222222', fontSize: 12 }} labelStyle={{ color: '#6B6B6B' }} cursor={{ fill: 'rgba(16,185,129,0.05)' }} />
+                <CartesianGrid strokeDasharray="2 2" stroke="var(--border)" horizontal={false} />
+                <XAxis type="number" stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+                <YAxis dataKey="region" type="category" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-body)' }} axisLine={false} tickLine={false} width={80} />
+                <Tooltip contentStyle={{ background: 'var(--background)', border: '1px solid var(--border)', fontSize: 12 }} labelStyle={{ color: 'var(--muted-foreground)' }} cursor={{ fill: 'rgba(16,185,129,0.05)' }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="square" />
                 <Bar dataKey="compliant" name="Compliant" stackId="a" fill="#10B981" />
                 <Bar dataKey="warning" name="Warning" stackId="a" fill="#C97B1A" />
@@ -117,17 +117,17 @@ export default function CompliancePage() {
         </div>
 
         {/* Recent Audits Timeline */}
-        <div className="bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A]">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Recent Audits</h2>
-            <p className="text-[12px] text-[#3D3D3D] mt-1">Last {mockAudits.length} audits</p>
+        <div className="bg-card border border-border">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Recent Audits</h2>
+            <p className="text-[12px] text-[var(--text-muted)] mt-1">Last {mockAudits.length} audits</p>
           </div>
           <div className="max-h-[320px] overflow-y-auto">
             {mockAudits.map((audit, idx) => {
               const config = statusConfig[audit.status]
               const isExpanded = expanded === audit.id
               return (
-                <div key={audit.id} className={cn('relative', idx !== mockAudits.length - 1 && 'border-b border-[#1A1A1A]')}>
+                <div key={audit.id} className={cn('relative', idx !== mockAudits.length - 1 && 'border-b border-border')}>
                   <button
                     onClick={() => setExpanded(isExpanded ? null : audit.id)}
                     className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[rgba(16,185,129,0.03)] text-left"
@@ -141,14 +141,14 @@ export default function CompliancePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <p className="text-[13px] text-[#F5F5F5] font-medium">{audit.title}</p>
-                        <span className="text-[10px] text-[#6B6B6B] shrink-0 font-mono">{audit.id}</span>
+                        <p className="text-[13px] text-foreground font-medium">{audit.title}</p>
+                        <span className="text-[10px] text-muted-foreground shrink-0 font-mono">{audit.id}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-[#6B6B6B] mb-1">
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-1">
                         <span>{audit.auditor}</span>
-                        <span className="text-[#3D3D3D]">·</span>
+                        <span className="text-[var(--text-muted)]">·</span>
                         <span>{new Date(audit.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                        <span className="text-[#3D3D3D]">·</span>
+                        <span className="text-[var(--text-muted)]">·</span>
                         <span>{audit.region}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -160,28 +160,28 @@ export default function CompliancePage() {
                           {config.label}
                         </span>
                         {audit.findings > 0 && (
-                          <span className="text-[10px] text-[#6B6B6B]">{audit.findings} finding{audit.findings !== 1 ? 's' : ''}</span>
+                          <span className="text-[10px] text-muted-foreground">{audit.findings} finding{audit.findings !== 1 ? 's' : ''}</span>
                         )}
                       </div>
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-[#6B6B6B] shrink-0 mt-1" strokeWidth={1.5} />
+                      <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-1" strokeWidth={1.5} />
                     ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-[#6B6B6B] shrink-0 mt-1" strokeWidth={1.5} />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-1" strokeWidth={1.5} />
                     )}
                   </button>
                   {isExpanded && (
-                    <div className="px-4 pb-3 pl-[60px] space-y-2 text-[12px] text-[#A0A0A0]">
-                      <div className="flex justify-between py-1 border-t border-[#1A1A1A] pt-3">
-                        <span className="text-[#6B6B6B]">Scope</span>
+                    <div className="px-4 pb-3 pl-[60px] space-y-2 text-[12px] text-[var(--text-body)]">
+                      <div className="flex justify-between py-1 border-t border-border pt-3">
+                        <span className="text-muted-foreground">Scope</span>
                         <span>{audit.scope}</span>
                       </div>
                       <div className="flex justify-between py-1">
-                        <span className="text-[#6B6B6B]">Region</span>
+                        <span className="text-muted-foreground">Region</span>
                         <span>{audit.region}</span>
                       </div>
                       <div className="flex justify-between py-1">
-                        <span className="text-[#6B6B6B]">Date</span>
+                        <span className="text-muted-foreground">Date</span>
                         <span>{new Date(audit.date).toLocaleString()}</span>
                       </div>
                     </div>

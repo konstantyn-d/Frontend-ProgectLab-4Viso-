@@ -11,8 +11,8 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between gap-6 flex-wrap">
         <div>
-          <h1 className="text-[20px] font-medium text-[#F5F5F5]">Dashboard</h1>
-          <p className="text-[14px] text-[#6B6B6B] mt-1">
+          <h1 className="text-[20px] font-medium text-foreground">Dashboard</h1>
+          <p className="text-[14px] text-muted-foreground mt-1">
             Real-time overview of pharmaceutical transport lanes
           </p>
         </div>
@@ -24,10 +24,10 @@ export default function DashboardPage() {
 
       {/* Map + Weather Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-[#111111] border border-[#222222]">
-          <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
-            <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">Global Network Map</h2>
-            <div className="flex items-center gap-4 text-[10px] text-[#6B6B6B]">
+        <div className="lg:col-span-2 bg-card border border-border">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Global Network Map</h2>
+            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-px bg-[#10B981]" />
                 Compliant
@@ -51,13 +51,13 @@ export default function DashboardPage() {
 
       {/* Network Status */}
       <div>
-        <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-4">Network Status by Corridor</h2>
+        <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-4">Network Status by Corridor</h2>
         <NetworkStatus />
       </div>
 
       {/* Lane Table */}
       <div>
-        <h2 className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-4">Active Transport Lanes</h2>
+        <h2 className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-4">Active Transport Lanes</h2>
         <LaneTable />
       </div>
     </div>

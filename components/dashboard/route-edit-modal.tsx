@@ -73,14 +73,14 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] bg-[#0A0A0A] border-[#222222] p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[560px] bg-background border-border p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <DialogHeader className="p-5 pb-0">
-          <DialogTitle className="text-[16px] font-medium text-[#F5F5F5]">
+          <DialogTitle className="text-[16px] font-medium text-foreground">
             Edit Route
           </DialogTitle>
-          <DialogDescription className="text-[13px] text-[#6B6B6B]">
-            <span className="font-mono text-[#A0A0A0]">{lane.originCode} → {lane.destinationCode}</span>
-            <span className="mx-2 text-[#3D3D3D]">·</span>
+          <DialogDescription className="text-[13px] text-muted-foreground">
+            <span className="font-mono text-[var(--text-body)]">{lane.originCode} → {lane.destinationCode}</span>
+            <span className="mx-2 text-[var(--text-muted)]">·</span>
             {lane.carrier}
           </DialogDescription>
         </DialogHeader>
@@ -88,7 +88,7 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
         <div className="p-5 space-y-6">
           {/* Current route */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-3">Current Route</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-3">Current Route</p>
             <div className="space-y-1">
               {waypoints.map((wp, idx) => {
                 const canRemove = wp.type === 'transit' && !wp.completed
@@ -99,10 +99,10 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
                       'flex items-center gap-3 px-3 py-2.5 border',
                       wp.current
                         ? 'border-[#10B981] bg-[rgba(16,185,129,0.05)]'
-                        : 'border-[#222222] bg-[#111111]'
+                        : 'border-border bg-card'
                     )}
                   >
-                    <GripVertical className="w-3.5 h-3.5 text-[#3D3D3D] shrink-0" strokeWidth={1.5} />
+                    <GripVertical className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" strokeWidth={1.5} />
                     <div
                       className={cn(
                         'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0',
@@ -110,24 +110,24 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
                           ? 'bg-[#10B981] text-[#0A0A0A]'
                           : wp.current
                           ? 'border border-[#10B981] text-[#10B981] bg-transparent'
-                          : 'border border-[#2E2E2E] text-[#6B6B6B] bg-transparent'
+                          : 'border border-[var(--border-hover)] text-muted-foreground bg-transparent'
                       )}
                     >
                       {idx + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-[12px] text-[#F5F5F5]">{wp.code}</span>
-                        <span className="text-[10px] uppercase tracking-[0.06em] text-[#6B6B6B]">
+                        <span className="font-mono text-[12px] text-foreground">{wp.code}</span>
+                        <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
                           {wp.type}
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#A0A0A0]">{wp.name}</p>
+                      <p className="text-[11px] text-[var(--text-body)]">{wp.name}</p>
                     </div>
                     {canRemove && (
                       <button
                         onClick={() => removeWaypoint(wp._localId)}
-                        className="text-[#6B6B6B] hover:text-[#E53E3E] shrink-0"
+                        className="text-muted-foreground hover:text-[#E53E3E] shrink-0"
                       >
                         <X className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </button>
@@ -140,26 +140,26 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
 
           {/* Add waypoint */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-2">Add Waypoint</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-2">Add Waypoint</p>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#3D3D3D]" strokeWidth={1.5} />
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" strokeWidth={1.5} />
               <Input
                 value={newWaypoint}
                 onChange={(e) => setNewWaypoint(e.target.value)}
                 placeholder="Search port or airport..."
-                className="pl-9 h-9 text-[13px] bg-[#111111] border-[#222222] focus:border-[#10B981]"
+                className="pl-9 h-9 text-[13px] bg-card border-border focus:border-[#10B981]"
               />
               {filteredPorts.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[#0A0A0A] border border-[#222222] max-h-40 overflow-auto z-10">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border max-h-40 overflow-auto z-10">
                   {filteredPorts.slice(0, 5).map(p => (
                     <button
                       key={p.code}
                       onClick={() => addWaypoint(p.code, p.name)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[#111111]"
+                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-card"
                     >
                       <span className="text-[12px]">
-                        <span className="font-mono text-[#F5F5F5]">{p.code}</span>
-                        <span className="text-[#6B6B6B] ml-2">{p.name}</span>
+                        <span className="font-mono text-foreground">{p.code}</span>
+                        <span className="text-muted-foreground ml-2">{p.name}</span>
                       </span>
                       <Plus className="w-3.5 h-3.5 text-[#10B981]" strokeWidth={1.5} />
                     </button>
@@ -172,7 +172,7 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
           {/* Weather warnings */}
           {weatherWarnings.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B] mb-2">Weather Along Route</p>
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-2">Weather Along Route</p>
               <div className="space-y-1.5">
                 {weatherWarnings.map(w => (
                   <div
@@ -188,8 +188,8 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
                       <CloudRain className="w-3.5 h-3.5 text-[#C97B1A] shrink-0" strokeWidth={1.5} />
                     )}
                     <div className="flex-1 text-[12px]">
-                      <span className="text-[#F5F5F5]">{w.location}</span>
-                      <span className="text-[#6B6B6B] ml-2">{w.condition}</span>
+                      <span className="text-foreground">{w.location}</span>
+                      <span className="text-muted-foreground ml-2">{w.condition}</span>
                     </div>
                   </div>
                 ))}
@@ -198,11 +198,11 @@ export function RouteEditModal({ lane, open, onOpenChange, onSave }: RouteEditMo
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 p-5 border-t border-[#222222]">
+        <div className="flex items-center justify-end gap-2 p-5 border-t border-border">
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="h-8 text-[12px] text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#1A1A1A]"
+            className="h-8 text-[12px] text-muted-foreground hover:text-foreground hover:bg-secondary"
           >
             Cancel
           </Button>

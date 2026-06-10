@@ -115,14 +115,14 @@ export function WorldMap() {
   const markerScale = 1 / position.zoom
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-[var(--map-bg)]">
       {/* Floating zoom controls */}
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-1">
         <button
           onClick={handleZoomIn}
           disabled={position.zoom >= MAX_ZOOM}
           aria-label="Zoom in"
-          className="w-7 h-7 flex items-center justify-center bg-[#111111] border border-[#2E2E2E] text-[#6B6B6B] hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <Plus size={14} strokeWidth={1.5} />
         </button>
@@ -130,14 +130,14 @@ export function WorldMap() {
           onClick={handleZoomOut}
           disabled={position.zoom <= MIN_ZOOM}
           aria-label="Zoom out"
-          className="w-7 h-7 flex items-center justify-center bg-[#111111] border border-[#2E2E2E] text-[#6B6B6B] hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <Minus size={14} strokeWidth={1.5} />
         </button>
         <button
           onClick={handleReset}
           aria-label="Reset view"
-          className="w-7 h-7 flex items-center justify-center bg-[#111111] border border-[#2E2E2E] text-[#6B6B6B] hover:text-[#10B981] hover:border-[#10B981]/30 transition-colors"
+          className="w-7 h-7 flex items-center justify-center bg-card border border-[var(--border-hover)] text-muted-foreground hover:text-[#10B981] hover:border-[#10B981]/30 transition-colors"
         >
           <Home size={14} strokeWidth={1.5} />
         </button>
@@ -171,9 +171,9 @@ export function WorldMap() {
                   key={geo.rsmKey}
                   geography={geo}
                   style={{
-                    default: { fill: '#141414', stroke: 'rgba(255,255,255,0.08)', strokeWidth: 0.5, outline: 'none' },
-                    hover: { fill: '#161616', stroke: 'rgba(255,255,255,0.12)', strokeWidth: 0.5, outline: 'none' },
-                    pressed: { fill: '#141414', stroke: 'rgba(255,255,255,0.08)', strokeWidth: 0.5, outline: 'none' },
+                    default: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
+                    hover: { fill: 'var(--map-land)', stroke: 'var(--map-stroke-hover)', strokeWidth: 0.5, outline: 'none' },
+                    pressed: { fill: 'var(--map-land)', stroke: 'var(--map-stroke)', strokeWidth: 0.5, outline: 'none' },
                   }}
                 />
               ))
@@ -228,11 +228,11 @@ export function WorldMap() {
                     <animate attributeName="opacity" from="0.7" to="0" dur={isHighRisk ? '1.2s' : '2s'} repeatCount="indefinite" />
                   </circle>
                   {/* Dot */}
-                  <circle r={2.2} fill={color} stroke="#0A0A0A" strokeWidth={0.6} />
+                  <circle r={2.2} fill={color} style={{ stroke: 'var(--background)', strokeWidth: 0.6 }} />
                   <text
                     textAnchor="middle"
                     y={-8}
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: 7, fill: '#A0A0A0', letterSpacing: '0.05em' }}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: 7, fill: 'var(--text-body)', letterSpacing: '0.05em' }}
                   >
                     {port.code}
                   </text>
@@ -246,38 +246,38 @@ export function WorldMap() {
       {/* Tooltip */}
       {hoveredLane && tooltipPos && (
         <div
-          className="fixed pointer-events-none z-50 bg-[#0A0A0A] border border-[#2E2E2E] p-3 min-w-[200px]"
+          className="fixed pointer-events-none z-50 bg-background border border-[var(--border-hover)] p-3 min-w-[200px]"
           style={{
             left: tooltipPos.x + 12,
             top: tooltipPos.y + 12,
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="font-mono text-[11px] text-[#F5F5F5]">
+            <span className="font-mono text-[11px] text-foreground">
               {hoveredLane.lane.originCode} → {hoveredLane.lane.destinationCode}
             </span>
-            <span className="font-mono text-[10px] text-[#6B6B6B]">{hoveredLane.lane.id}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{hoveredLane.lane.id}</span>
           </div>
           <div className="space-y-1 text-[11px]">
             <div className="flex justify-between">
-              <span className="text-[#6B6B6B]">Carrier</span>
-              <span className="text-[#A0A0A0]">{hoveredLane.lane.carrier}</span>
+              <span className="text-muted-foreground">Carrier</span>
+              <span className="text-[var(--text-body)]">{hoveredLane.lane.carrier}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B6B6B]">Temp</span>
+              <span className="text-muted-foreground">Temp</span>
               <span className={hoveredLane.lane.tempDeviation ? 'text-[#E53E3E]' : 'text-[#10B981]'}>
                 {hoveredLane.lane.currentTemp}°C
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B6B6B]">Risk</span>
-              <span className={hoveredLane.lane.riskScore > 60 ? 'text-[#E53E3E]' : 'text-[#A0A0A0]'}>
+              <span className="text-muted-foreground">Risk</span>
+              <span className={hoveredLane.lane.riskScore > 60 ? 'text-[#E53E3E]' : 'text-[var(--text-body)]'}>
                 {hoveredLane.lane.riskScore}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B6B6B]">Progress</span>
-              <span className="text-[#A0A0A0]">{hoveredLane.lane.progress}%</span>
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-[var(--text-body)]">{hoveredLane.lane.progress}%</span>
             </div>
           </div>
         </div>

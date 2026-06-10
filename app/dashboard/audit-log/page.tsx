@@ -112,15 +112,15 @@ export default function AuditLogPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-[15px] font-medium text-[#F5F5F5]">Audit Log</h1>
-          <p className="text-[13px] text-[#6B6B6B] mt-1">
+          <h1 className="text-[15px] font-medium text-foreground">Audit Log</h1>
+          <p className="text-[13px] text-muted-foreground mt-1">
             Track all activities and changes across transport lanes
           </p>
         </div>
         <Button 
           onClick={handleExportCSV} 
           variant="outline" 
-          className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+          className="gap-2 h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
         >
           <Download className="w-3.5 h-3.5" />
           Export CSV
@@ -134,7 +134,7 @@ export default function AuditLogPage() {
             placeholder="Search logs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 text-[13px] bg-[#111111] border-[#222222] placeholder:text-[#3D3D3D] focus:border-[#2E2E2E]"
+            className="h-8 text-[13px] bg-card border-border placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)]"
           />
         </div>
 
@@ -142,14 +142,14 @@ export default function AuditLogPage() {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+              className="gap-2 h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
             >
               <Calendar className="w-3.5 h-3.5" />
               Date Range
               <ChevronDown className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
+          <DropdownMenuContent className="bg-card border-border">
             <DropdownMenuItem className="text-[13px]">Today</DropdownMenuItem>
             <DropdownMenuItem className="text-[13px]">Last 7 days</DropdownMenuItem>
             <DropdownMenuItem className="text-[13px]">Last 30 days</DropdownMenuItem>
@@ -160,14 +160,14 @@ export default function AuditLogPage() {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+              className="gap-2 h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
             >
               <User className="w-3.5 h-3.5" />
               {userFilter === 'all' ? 'All Users' : userFilter}
               <ChevronDown className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
+          <DropdownMenuContent className="bg-card border-border">
             <DropdownMenuItem onClick={() => setUserFilter('all')} className="text-[13px]">
               All Users
             </DropdownMenuItem>
@@ -183,14 +183,14 @@ export default function AuditLogPage() {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="gap-2 h-8 text-[12px] border-[#2E2E2E] bg-transparent text-[#F5F5F5] hover:bg-[#1A1A1A]"
+              className="gap-2 h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary"
             >
               <Filter className="w-3.5 h-3.5" />
               {actionFilter === 'all' ? 'All Actions' : actionLabels[actionFilter]}
               <ChevronDown className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#111111] border-[#222222]">
+          <DropdownMenuContent className="bg-card border-border">
             <DropdownMenuItem onClick={() => setActionFilter('all')} className="text-[13px]">
               All Actions
             </DropdownMenuItem>
@@ -208,45 +208,45 @@ export default function AuditLogPage() {
       </div>
 
       {/* Timeline */}
-      <div className="bg-[#111111] border border-[#222222]">
+      <div className="bg-card border border-border">
         {filteredLogs.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-[13px] text-[#6B6B6B]">No audit log entries found</p>
+            <p className="text-[13px] text-muted-foreground">No audit log entries found</p>
           </div>
         ) : (
           filteredLogs.map((entry, index) => (
             <div
               key={entry.id}
               className={cn(
-                'flex items-start gap-4 px-4 py-4 border-l-4 hover:bg-[#1A1A1A] transition-colors',
+                'flex items-start gap-4 px-4 py-4 border-l-4 hover:bg-secondary transition-colors',
                 entry.severity === 'critical' && 'border-l-[#E53E3E]',
                 entry.severity === 'warning' && 'border-l-[#C97B1A]',
                 entry.severity === 'success' && 'border-l-[#2D6A4F]',
                 entry.severity === 'info' && 'border-l-[#2C5282]',
-                index !== filteredLogs.length - 1 && 'border-b border-[#1A1A1A]'
+                index !== filteredLogs.length - 1 && 'border-b border-border'
               )}
             >
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1">
-                  <span className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+                  <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                     {actionLabels[entry.action]}
                   </span>
-                  <span className="text-[11px] text-[#3D3D3D] font-mono">
+                  <span className="text-[11px] text-[var(--text-muted)] font-mono">
                     {entry.laneId}
                   </span>
                 </div>
-                <p className="text-[13px] text-[#A0A0A0] mb-2">
+                <p className="text-[13px] text-[var(--text-body)] mb-2">
                   {entry.description}
                 </p>
-                <div className="flex items-center gap-4 text-[11px] text-[#3D3D3D]">
+                <div className="flex items-center gap-4 text-[11px] text-[var(--text-muted)]">
                   <span>{entry.userName}</span>
                 </div>
               </div>
 
               {/* Timestamp */}
               <span 
-                className="text-[11px] text-[#3D3D3D] shrink-0"
+                className="text-[11px] text-[var(--text-muted)] shrink-0"
                 title={formatFullTimestamp(entry.timestamp)}
               >
                 {formatTimestamp(entry.timestamp)}
@@ -257,14 +257,14 @@ export default function AuditLogPage() {
       </div>
 
       {/* Pagination info */}
-      <div className="flex items-center justify-between text-[12px] text-[#6B6B6B]">
+      <div className="flex items-center justify-between text-[12px] text-muted-foreground">
         <span>Showing {filteredLogs.length} of {mockAuditLog.length} entries</span>
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
             size="sm" 
             disabled 
-            className="h-7 text-[11px] border-[#2E2E2E] bg-transparent"
+            className="h-7 text-[11px] border-[var(--border-hover)] bg-transparent"
           >
             Previous
           </Button>
@@ -272,7 +272,7 @@ export default function AuditLogPage() {
             variant="outline" 
             size="sm" 
             disabled 
-            className="h-7 text-[11px] border-[#2E2E2E] bg-transparent"
+            className="h-7 text-[11px] border-[var(--border-hover)] bg-transparent"
           >
             Next
           </Button>
