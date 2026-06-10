@@ -344,6 +344,18 @@ export function LogisticsMap({
     } catch { /* source not ready */ }
   }, [])
 
+  // ---- re-apply geometry when the lanes data changes (async load / CRUD) ----
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const lanesSrc = map.getSource('lm-lanes') as GeoJSONSource | undefined
+    const endpointsSrc = map.getSource('lm-endpoints') as GeoJSONSource | undefined
+    if (lanesSrc) lanesSrc.setData(lanesToArcCollection(visibleLanes, arcs, selectedRef.current))
+    if (endpointsSrc) endpointsSrc.setData(lanesToEndpointCollection(visibleLanes))
+    applySelectionState()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleLanes, arcs, ready])
+
   // ====================================================================
   // INIT (once)
   // ====================================================================

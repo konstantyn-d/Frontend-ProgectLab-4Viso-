@@ -1,17 +1,24 @@
 'use client'
 
 import { useMemo } from 'react'
-import { mockLanes, mockPorts } from '@/lib/mock-data'
+import { mockPorts } from '@/lib/mock-data'
 import { LogisticsMap } from '@/components/map/LogisticsMap'
 import { lanesToShipmentLanes } from '@/components/map/mockLanes'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getLanes } from '@/lib/services/lanesService'
 
 /**
- * Dashboard "Global Network Map" — now a premium, interactive MapLibre map.
- * Lanes are derived from the app's existing lane/port data and rendered as
- * status-aware, clickable shipment lanes. Swap `lanesToShipmentLanes(...)`
- * for live API/Supabase data when ready.
+ * Dashboard "Global Network Map" — premium, interactive MapLibre map.
+ * Lanes come from the data service (Supabase when configured, else demo)
+ * and are rendered as status-aware, clickable shipment lanes. Port
+ * coordinates are resolved from the bundled port reference (codes match
+ * the seeded ports).
  */
 export function WorldMap() {
-  const lanes = useMemo(() => lanesToShipmentLanes(mockLanes, mockPorts), [])
-  return <LogisticsMap lanes={lanes} height="100%" />
+  const { data: lanes } = useQuery(getLanes, [])
+  const shipmentLanes = useMemo(
+    () => (lanes ? lanesToShipmentLanes(lanes, mockPorts) : []),
+    [lanes],
+  )
+  return <LogisticsMap lanes={shipmentLanes} height="100%" />
 }
