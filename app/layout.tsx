@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Bricolage_Grotesque } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/lib/theme-context'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className={`${geist.variable} ${geistMono.variable} ${bricolage.variable} font-sans antialiased`}>
         <ThemeProvider>
           {children}
+          <Toaster richColors position="bottom-right" />
         </ThemeProvider>
         <Analytics />
       </body>
