@@ -50,6 +50,7 @@ const notifSeverityColors = {
 
 export function Header() {
   const router = useRouter()
+  const { theme, toggleTheme } = useTheme()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -96,7 +97,7 @@ export function Header() {
     results.shipments.length > 0
 
   return (
-    <header className="h-14 border-b border-[#222222] bg-[#0A0A0A] flex items-center justify-between px-6">
+    <header className="h-14 border-b border-border bg-background flex items-center justify-between px-6">
       {/* Search */}
       <div ref={searchRef} className="relative w-96">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#3D3D3D]" strokeWidth={1.5} />
@@ -109,18 +110,18 @@ export function Header() {
             setOpen(true)
           }}
           onFocus={() => setOpen(true)}
-          className="pl-9 h-8 text-[13px] bg-[#111111] border-[#222222] placeholder:text-[#3D3D3D] focus:border-[#10B981] focus-visible:ring-[#10B981]"
+          className="pl-9 h-8 text-[13px] bg-card border-border placeholder:text-[var(--text-muted)] focus:border-[#10B981] focus-visible:ring-[#10B981]"
         />
         {open && query && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-[#0A0A0A] border border-[#222222] max-h-[360px] overflow-auto z-50">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border max-h-[360px] overflow-auto z-50">
             {!hasResults && (
-              <div className="px-4 py-6 text-center text-[12px] text-[#6B6B6B]">
+              <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">
                 No results for &quot;{query}&quot;
               </div>
             )}
             {results.lanes.length > 0 && (
               <div className="py-1">
-                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Lanes
                 </div>
                 {results.lanes.map(l => (
@@ -131,10 +132,10 @@ export function Header() {
                       setOpen(false)
                       setQuery('')
                     }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 text-[13px] hover:bg-[#111111]"
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-[13px] hover:bg-card"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="font-mono text-[#F5F5F5]">
+                      <span className="font-mono text-foreground">
                         {l.originCode}-{l.destinationCode}
                       </span>
                       <span className="text-[#6B6B6B] text-[11px]">{l.carrier}</span>
@@ -146,14 +147,14 @@ export function Header() {
             )}
             {results.carriers.length > 0 && (
               <div className="py-1 border-t border-[#1A1A1A]">
-                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Carriers
                 </div>
                 {results.carriers.map(c => (
                   <button
                     key={c}
                     onClick={() => setOpen(false)}
-                    className="w-full text-left px-3 py-1.5 text-[13px] text-[#A0A0A0] hover:bg-[#111111]"
+                    className="w-full text-left px-3 py-1.5 text-[13px] text-[var(--text-body)] hover:bg-card"
                   >
                     {c}
                   </button>
@@ -162,7 +163,7 @@ export function Header() {
             )}
             {results.shipments.length > 0 && (
               <div className="py-1 border-t border-[#1A1A1A]">
-                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Shipments
                 </div>
                 {results.shipments.map(s => (
@@ -173,10 +174,10 @@ export function Header() {
                       setOpen(false)
                       setQuery('')
                     }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 text-[13px] hover:bg-[#111111]"
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-[13px] hover:bg-card"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="font-mono text-[#F5F5F5]">{s.id}</span>
+                      <span className="font-mono text-foreground">{s.id}</span>
                       <span className="text-[#6B6B6B] text-[11px]">{s.laneCode}</span>
                     </span>
                     <span className="text-[10px] text-[#3D3D3D]">{s.currentLocation}</span>
@@ -190,23 +191,37 @@ export function Header() {
 
       {/* Right Section */}
       <div className="flex items-center gap-3">
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark'
+            ? <Sun className="w-4 h-4" strokeWidth={1.5} />
+            : <Moon className="w-4 h-4" strokeWidth={1.5} />
+          }
+        </Button>
+
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-8 w-8 text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#1A1A1A]"
+              className="relative h-8 w-8 text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-secondary"
             >
               <Bell className="w-4 h-4" strokeWidth={1.5} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#E53E3E] rounded-full" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 bg-[#0A0A0A] border-[#222222]">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+          <DropdownMenuContent align="end" className="w-80 bg-background border-border">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
               Notifications
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#1A1A1A]" />
+            <DropdownMenuSeparator className="bg-secondary" />
             {notifications.map(n => (
               <DropdownMenuItem
                 key={n.id}
@@ -223,11 +238,11 @@ export function Header() {
                     <span className="text-[12px] text-[#F5F5F5] font-medium">{n.title}</span>
                     <span className="text-[10px] text-[#6B6B6B] shrink-0">{n.time}</span>
                   </div>
-                  <p className="text-[11px] text-[#A0A0A0] leading-snug">{n.description}</p>
+                  <p className="text-[11px] text-[var(--text-body)] leading-snug">{n.description}</p>
                 </div>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator className="bg-[#1A1A1A]" />
+            <DropdownMenuSeparator className="bg-secondary" />
             <DropdownMenuItem className="justify-center text-[12px] text-[#10B981] hover:text-[#34D399] cursor-pointer">
               View all notifications
             </DropdownMenuItem>
@@ -239,24 +254,24 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2.5 px-2 h-8 hover:bg-[#1A1A1A]"
+              className="flex items-center gap-2.5 px-2 h-8 hover:bg-secondary"
             >
               <div className="w-6 h-6 rounded-sm bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] flex items-center justify-center">
                 <User className="w-3.5 h-3.5 text-[#10B981]" strokeWidth={1.5} />
               </div>
               <div className="text-left">
-                <p className="text-[12px] text-[#F5F5F5]">Sarah Chen</p>
+                <p className="text-[12px] text-foreground">Sarah Chen</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-[#0A0A0A] border-[#222222]">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-[#6B6B6B]">
+          <DropdownMenuContent align="end" className="w-48 bg-background border-border">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
               Account
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#1A1A1A]" />
-            <DropdownMenuItem className="text-[13px] text-[#A0A0A0] cursor-pointer">Profile</DropdownMenuItem>
-            <DropdownMenuItem className="text-[13px] text-[#A0A0A0] cursor-pointer">Settings</DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-[#1A1A1A]" />
+            <DropdownMenuSeparator className="bg-secondary" />
+            <DropdownMenuItem className="text-[13px] text-[var(--text-body)] cursor-pointer">Profile</DropdownMenuItem>
+            <DropdownMenuItem className="text-[13px] text-[var(--text-body)] cursor-pointer">Settings</DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-secondary" />
             <DropdownMenuItem className="text-[13px] text-[#E53E3E] cursor-pointer">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

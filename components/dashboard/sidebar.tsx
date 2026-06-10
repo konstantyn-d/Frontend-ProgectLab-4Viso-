@@ -26,16 +26,16 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-56 bg-[#0A0A0A] flex flex-col border-r border-[#222222]">
+    <aside className="fixed left-0 top-0 bottom-0 w-56 bg-background flex flex-col border-r border-border">
       {/* Logo */}
-      <div className="h-14 flex items-center gap-2 px-5 border-b border-[#222222]">
+      <div className="h-14 flex items-center gap-2 px-5 border-b border-border">
         <div className="flex items-center gap-1.5">
           <div className="w-1 h-4 bg-[#10B981]" />
-          <span className="text-[12px] uppercase tracking-[0.12em] text-[#F5F5F5] font-medium">
+          <span className="text-[12px] uppercase tracking-[0.12em] text-foreground font-medium">
             Pharma<span className="text-[#10B981]">Track</span>
           </span>
         </div>
-        <span className="text-[10px] text-[#3D3D3D] ml-auto">4Viso</span>
+        <span className="text-[10px] text-[var(--text-muted)] ml-auto">4Viso</span>
       </div>
 
       {/* Navigation */}
@@ -53,8 +53,8 @@ export function Sidebar() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2 text-[14px] rounded-sm',
                     isActive
-                      ? 'text-[#F5F5F5] border-l-2 border-[#10B981] -ml-0.5 pl-[10px] bg-[rgba(16,185,129,0.05)]'
-                      : 'text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#111111]'
+                      ? 'text-foreground border-l-2 border-[#10B981] -ml-0.5 pl-[10px] bg-[rgba(16,185,129,0.05)]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card'
                   )}
                 >
                   <item.icon
@@ -73,10 +73,10 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-2 border-t border-[#222222]">
+      <div className="p-2 border-t border-border">
         <Link
           href="/"
-          className="flex items-center gap-3 px-3 py-2 text-[14px] text-[#6B6B6B] hover:text-[#F5F5F5] hover:bg-[#111111] rounded-sm"
+          className="flex items-center gap-3 px-3 py-2 text-[14px] text-muted-foreground hover:text-foreground hover:bg-card rounded-sm"
         >
           <LogOut className="w-4 h-4" strokeWidth={1.5} />
           Sign Out
