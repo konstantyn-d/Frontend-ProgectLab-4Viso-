@@ -1,8 +1,10 @@
 ﻿'use client'
 
 import { useState, useMemo } from 'react'
-import { mockShipments, shipmentFlow, type Shipment } from '@/lib/mock-data'
+import { shipmentFlow, type Shipment } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@/lib/hooks/useQuery'
+import { getShipments } from '@/lib/services/shipmentsService'
 import {
   BarChart,
   Bar,
@@ -47,19 +49,21 @@ function ShipmentStatusBadge({ status }: { status: Shipment['status'] }) {
 }
 
 export default function ShipmentsPage() {
+  const { data: shipments, loading, error } = useQuery(getShipments, [])
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selected, setSelected] = useState<Shipment | null>(null)
 
+  const allShipments = shipments ?? []
   const stats = [
-    { label: 'Active Shipments', value: String(mockShipments.length), color: 'var(--foreground)' },
-    { label: 'In Transit', value: String(mockShipments.filter(s => s.status === 'in-transit').length), color: 'var(--info-c)' },
-    { label: 'Delivered Today', value: String(mockShipments.filter(s => s.status === 'arrived').length), color: 'var(--primary)' },
-    { label: 'Delayed', value: String(mockShipments.filter(s => s.status === 'delayed').length), color: 'var(--danger)' },
+    { label: 'Active Shipments', value: String(allShipments.length), color: 'var(--foreground)' },
+    { label: 'In Transit', value: String(allShipments.filter(s => s.status === 'in-transit').length), color: 'var(--info-c)' },
+    { label: 'Delivered Today', value: String(allShipments.filter(s => s.status === 'arrived').length), color: 'var(--primary)' },
+    { label: 'Delayed', value: String(allShipments.filter(s => s.status === 'delayed').length), color: 'var(--danger)' },
   ]
 
   const filtered = useMemo(() => {
-    return mockShipments.filter(s => {
+    return allShipments.filter(s => {
       const q = query.trim().toLowerCase()
       const matchQ = !q ||
         s.id.toLowerCase().includes(q) ||
@@ -69,7 +73,7 @@ export default function ShipmentsPage() {
       const matchStatus = statusFilter === 'all' || s.status === statusFilter
       return matchQ && matchStatus
     })
-  }, [query, statusFilter])
+  }, [shipments, query, statusFilter])
 
   return (
     <div className="space-y-8">
@@ -154,7 +158,7 @@ export default function ShipmentsPage() {
                 <DropdownMenuItem onClick={() => setStatusFilter('arrived')} className="text-[13px]">Arrived</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <span className="text-[12px] text-muted-foreground">{filtered.length} of {mockShipments.length}</span>
+            <span className="text-[12px] text-muted-foreground">{filtered.length} of {allShipments.length}</span>
           </div>
           <Button variant="outline" size="sm" className="h-8 text-[12px] border-[var(--border-hover)] bg-transparent text-foreground hover:bg-secondary">
             <Download className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Export
@@ -175,7 +179,16 @@ export default function ShipmentsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((s, index) => {
+              {loading && (
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>Loading shipments…</td></tr>
+              )}
+              {!loading && error && (
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-[13px]" style={{ color: 'var(--danger)' }}>Could not load shipments: {error}</td></tr>
+              )}
+              {!loading && !error && filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-[13px]" style={{ color: 'var(--muted-foreground)' }}>No shipments match your search.</td></tr>
+              )}
+              {!loading && !error && filtered.map((s, index) => {
                 const deviation = s.lastTemp > s.tempMax || s.lastTemp < s.tempMin
                 return (
                   <tr
