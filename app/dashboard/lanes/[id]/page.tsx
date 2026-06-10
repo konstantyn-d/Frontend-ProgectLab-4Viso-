@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { mockPorts, mockTeam, mockDocuments, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
+import { mockPorts, mockTeam, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
+import { getDocumentsForLane } from '@/lib/services/documentsService'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getLaneDetail, type LaneNode } from '@/lib/services/lanesService'
@@ -105,6 +106,7 @@ export default function LaneDetailPage() {
   const { data: detail, loading } = useQuery(() => getLaneDetail(id), [id])
   const { data: laneAlerts } = useQuery(() => getAlertsForLane(id), [id])
   const { data: laneShipments } = useQuery(() => getShipmentsForLane(id), [id])
+  const { data: laneDocuments } = useQuery(() => getDocumentsForLane(id), [id])
   const lane = detail?.lane ?? null
 
   const tempHistory = useMemo(() => lane ? generateTempHistory(lane) : [], [lane])
@@ -404,9 +406,13 @@ export default function LaneDetailPage() {
           <section className="border border-border overflow-hidden" style={panelStyle}>
             <PanelHead title="Documents" />
             <div>
-              {mockDocuments.map((doc, idx) => (
+              {(laneDocuments ?? []).length === 0 && (
+                <div className="px-[18px] py-6 text-center text-[12px]" style={{ color: 'var(--muted-foreground)' }}>No documents attached.</div>
+              )}
+              {(laneDocuments ?? []).map((doc, idx) => (
                 <button
                   key={doc.id}
+                  onClick={() => doc.fileUrl && window.open(doc.fileUrl, '_blank')}
                   className="w-full flex items-center gap-3 px-[18px] py-3 text-left transition-colors"
                   style={{ borderTop: idx > 0 ? '1px solid var(--line-soft)' : undefined }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-wash)')}
@@ -417,7 +423,7 @@ export default function LaneDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12.5px] truncate" style={{ color: 'var(--foreground)' }}>{doc.name}</p>
-                    <p className="text-[10.5px]" style={{ color: 'var(--muted-foreground)' }}>{doc.size}</p>
+                    <p className="text-[10.5px]" style={{ color: 'var(--muted-foreground)' }}>{doc.meta}</p>
                   </div>
                   <Download className="w-[15px] h-[15px] shrink-0" style={{ color: 'var(--muted-foreground)' }} strokeWidth={1.5} />
                 </button>
