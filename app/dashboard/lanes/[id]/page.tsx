@@ -5,12 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { mockPorts, mockTeam, mockDocuments, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
-import { getLaneDetail } from '@/lib/services/lanesService'
+import { getLaneDetail, type LaneNode } from '@/lib/services/lanesService'
 import { getShipmentsForLane } from '@/lib/services/shipmentsService'
 import { getAlertsForLane } from '@/lib/services/alertsService'
 import { LaneHealthPanel } from '@/components/dashboard/lane-health-panel'
 import { RiskBreakdownCard } from '@/components/dashboard/risk-breakdown-card'
 import { ActiveShipmentsCard } from '@/components/dashboard/active-shipments-card'
+import { NodeDrawer } from '@/components/dashboard/node-drawer'
 import { RouteEditModal } from '@/components/dashboard/route-edit-modal'
 import {
   ResponsiveContainer,
@@ -100,6 +101,7 @@ export default function LaneDetailPage() {
   const id = params?.id as string
 
   const [routeEditOpen, setRouteEditOpen] = useState(false)
+  const [selectedNode, setSelectedNode] = useState<LaneNode | null>(null)
   const { data: detail, loading } = useQuery(() => getLaneDetail(id), [id])
   const { data: laneAlerts } = useQuery(() => getAlertsForLane(id), [id])
   const { data: laneShipments } = useQuery(() => getShipmentsForLane(id), [id])
@@ -129,6 +131,29 @@ export default function LaneDetailPage() {
         <GhostButton onClick={() => router.push('/dashboard/lanes')}>Back to lanes</GhostButton>
       </div>
     )
+  }
+
+  // Open a node drawer for the clicked route stop. Positional mapping to
+  // the rich nodes when present, otherwise a node synthesized from the
+  // derived waypoint (demo mode).
+  const openStop = (idx: number) => {
+    if (detail.nodes.length > 0) {
+      setSelectedNode(detail.nodes[Math.min(idx, detail.nodes.length - 1)])
+      return
+    }
+    const wp = waypoints[idx]
+    if (!wp) return
+    setSelectedNode({
+      id: `demo-${idx}`, sequence: idx, code: wp.code, name: wp.name, locationName: wp.name,
+      type: wp.type === 'origin' ? 'port' : wp.type === 'customs' ? 'customs' : wp.type === 'destination' ? 'final_delivery' : 'hub',
+      modeFromPrevious: null, responsibleCompany: lane.carrier,
+      temperatureControl: wp.type !== 'transit' && wp.type !== 'customs',
+      tempMin: lane.tempMin, tempMax: lane.tempMax, securityLevel: 'medium',
+      handlingCapabilities: ['pharma'], specialConditions: ['pharma'],
+      validationStatus: lane.gdpCompliant ? 'validated' : 'claimed', riskScore: 0,
+      latitude: null, longitude: null,
+      certifications: lane.gdpCompliant ? [{ type: 'GDP', status: 'valid', verified: true }] : [{ type: 'GDP', status: 'expired', verified: false }],
+    })
   }
 
   const attributes = [
@@ -207,7 +232,7 @@ export default function LaneDetailPage() {
         <div className="flex items-start px-[24px] py-[26px]">
           {waypoints.map((wp, idx) => (
             <div key={wp.code + idx} className="flex items-start flex-1">
-              <div className="flex flex-col gap-2.5 min-w-[76px]">
+              <button onClick={() => openStop(idx)} title="View node details" className="flex flex-col gap-2.5 min-w-[76px] text-left cursor-pointer group">
                 <div
                   className={cn('w-[36px] h-[36px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold shrink-0')}
                   style={
@@ -224,9 +249,9 @@ export default function LaneDetailPage() {
                   <p className="font-mono text-[10px] uppercase tracking-[0.06em]" style={{ color: wp.current ? 'var(--accent-deep)' : 'var(--muted-foreground)' }}>
                     {wp.type}
                   </p>
-                  <p className="font-mono text-[13px] font-semibold mt-[3px]" style={{ color: 'var(--foreground)' }}>{wp.code}</p>
+                  <p className="font-mono text-[13px] font-semibold mt-[3px] group-hover:text-[var(--accent-deep)] transition-colors" style={{ color: 'var(--foreground)' }}>{wp.code}</p>
                 </div>
-              </div>
+              </button>
               {idx < waypoints.length - 1 && (
                 <div className="flex-1 h-[2px] rounded mx-2 mt-[17px]" style={{ background: wp.completed ? 'var(--primary)' : 'var(--border)' }} />
               )}
@@ -407,6 +432,13 @@ export default function LaneDetailPage() {
         open={routeEditOpen}
         onOpenChange={setRouteEditOpen}
         onSave={() => {}}
+      />
+
+      <NodeDrawer
+        node={selectedNode}
+        laneTempMin={lane.tempMin}
+        laneTempMax={lane.tempMax}
+        onOpenChange={(o) => { if (!o) setSelectedNode(null) }}
       />
     </div>
   )
