@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
+import { DemoBanner } from '@/components/dashboard/demo-banner'
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col ml-[248px] min-w-0">
         <Header />
+        <DemoBanner />
         <main className="flex-1 overflow-auto" style={{ padding: '34px 32px 72px' }}>
           {children}
         </main>
