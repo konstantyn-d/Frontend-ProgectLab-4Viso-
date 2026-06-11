@@ -16,7 +16,7 @@ import { RiskBreakdownCard } from '@/components/dashboard/risk-breakdown-card'
 import { ActiveShipmentsCard } from '@/components/dashboard/active-shipments-card'
 import { LaneComplianceCard } from '@/components/dashboard/lane-compliance-card'
 import { NodeDrawer } from '@/components/dashboard/node-drawer'
-import { RouteEditModal } from '@/components/dashboard/route-edit-modal'
+import { RouteBuilderModal } from '@/components/dashboard/route-builder-modal'
 import {
   ResponsiveContainer,
   XAxis,
@@ -107,7 +107,7 @@ export default function LaneDetailPage() {
   const { role } = useRole()
   const [routeEditOpen, setRouteEditOpen] = useState(false)
   const [selectedNode, setSelectedNode] = useState<LaneNode | null>(null)
-  const { data: detail, loading } = useQuery(() => getLaneDetail(id), [id])
+  const { data: detail, loading, refetch } = useQuery(() => getLaneDetail(id), [id])
   const { data: laneAlerts } = useQuery(() => getAlertsForLane(id), [id])
   const { data: laneShipments } = useQuery(() => getShipmentsForLane(id), [id])
   const { data: laneDocuments } = useQuery(() => getDocumentsForLane(id), [id])
@@ -444,11 +444,12 @@ export default function LaneDetailPage() {
         </div>
       </div>
 
-      <RouteEditModal
-        lane={lane}
+      <RouteBuilderModal
         open={routeEditOpen}
         onOpenChange={setRouteEditOpen}
-        onSave={() => {}}
+        lane={lane}
+        initialNodes={detail.nodes}
+        onSaved={() => refetch()}
       />
 
       <NodeDrawer
