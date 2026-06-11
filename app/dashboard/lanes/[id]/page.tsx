@@ -12,6 +12,7 @@ import { getAlertsForLane } from '@/lib/services/alertsService'
 import { LaneHealthPanel } from '@/components/dashboard/lane-health-panel'
 import { RiskBreakdownCard } from '@/components/dashboard/risk-breakdown-card'
 import { ActiveShipmentsCard } from '@/components/dashboard/active-shipments-card'
+import { LaneComplianceCard } from '@/components/dashboard/lane-compliance-card'
 import { NodeDrawer } from '@/components/dashboard/node-drawer'
 import { RouteEditModal } from '@/components/dashboard/route-edit-modal'
 import {
@@ -320,6 +321,11 @@ export default function LaneDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px] mb-[18px] items-start">
         <RiskBreakdownCard risk={detail.risk} />
         <ActiveShipmentsCard laneCode={lane.id} />
+      </div>
+
+      {/* Compliance checklist */}
+      <div className="mb-[18px]">
+        <LaneComplianceCard laneCode={lane.id} />
       </div>
 
       {/* Lane Attributes */}

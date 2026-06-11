@@ -501,3 +501,13 @@
 .lm-tip-sub { font-size: 11px; color: var(--muted-foreground); }
 .lm-tip-meta { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
 .lm-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+/* ============================================================
+   Print — clean compliance report (hide app shell)
+   ============================================================ */
+@media print {
+  aside, header { display: none !important; }
+  main { margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+  .print\:hidden { display: none !important; }
+  body { background: #fff !important; }
+}
