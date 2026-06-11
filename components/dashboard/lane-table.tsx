@@ -6,6 +6,8 @@ import { type Lane, type TransportMode } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getLanes } from '@/lib/services/lanesService'
+import { useRole } from '@/lib/role-context'
+import { can } from '@/lib/permissions'
 import {
   Plane,
   Ship,
@@ -100,6 +102,7 @@ const modeFilters: { k: TransportMode | 'all'; label: string; icon?: React.React
 
 export function LaneTable() {
   const router = useRouter()
+  const { role } = useRole()
   const { data: loadedLanes, loading, error } = useQuery(getLanes, [])
   const [lanes, setLanes] = useState<Lane[]>([])
   const [filterMode, setFilterMode] = useState<TransportMode | 'all'>('all')
@@ -164,14 +167,16 @@ export function LaneTable() {
             {filteredLanes.length} lanes
           </span>
         </div>
-        <button
-          onClick={handleAddLane}
-          className="inline-flex items-center gap-[9px] h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
-          style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
-        >
-          <Plus className="w-[14px] h-[14px]" strokeWidth={2} />
-          Add Lane
-        </button>
+        {can(role, 'edit_lane') && (
+          <button
+            onClick={handleAddLane}
+            className="inline-flex items-center gap-[9px] h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+            style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
+          >
+            <Plus className="w-[14px] h-[14px]" strokeWidth={2} />
+            Add Lane
+          </button>
+        )}
       </div>
 
       {/* Table */}

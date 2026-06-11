@@ -9,6 +9,8 @@ import { ChevronDown, UserPlus, Check, ArrowUpRight } from 'lucide-react'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getProfiles } from '@/lib/services/profilesService'
 import { assignAlert, resolveAlert, type AlertVM } from '@/lib/services/alertsService'
+import { useRole } from '@/lib/role-context'
+import { can } from '@/lib/permissions'
 import type { AlertSeverity } from '@/lib/supabase/types'
 
 const sevColor: Record<AlertSeverity, string> = { critical: 'var(--danger)', warning: 'var(--warn)', info: 'var(--info-c)' }
@@ -21,12 +23,14 @@ export function AlertDetailDialog({
   onChanged: (id: string, patch: Partial<AlertVM>) => void
 }) {
   const router = useRouter()
+  const { role } = useRole()
   const { data: profiles } = useQuery(getProfiles, [])
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
   if (!alert) return null
   const resolved = alert.status === 'resolved' || alert.status === 'dismissed'
+  const canAct = can(role, 'resolve_alert')
 
   const doAssign = async (id: string, name: string) => {
     setBusy(true)
@@ -88,7 +92,11 @@ export function AlertDetailDialog({
           <p className="text-[12px]" style={{ color: 'var(--muted-foreground)' }}>Assigned to <span style={{ color: 'var(--foreground)' }}>{alert.assignedToName}</span></p>
         )}
 
-        {!resolved && (
+        {!resolved && !canAct && (
+          <p className="text-[12px]" style={{ color: 'var(--muted-foreground)' }}>Your role is read-only for alerts. Switch role in Settings to resolve.</p>
+        )}
+
+        {!resolved && canAct && (
           <>
             <textarea
               value={note}

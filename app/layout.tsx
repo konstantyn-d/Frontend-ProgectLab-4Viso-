@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Bricolage_Grotesque } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/lib/theme-context'
+import { RoleProvider } from '@/lib/role-context'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -37,8 +38,10 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${geist.variable} ${geistMono.variable} ${bricolage.variable} font-sans antialiased`}>
         <ThemeProvider>
-          {children}
-          <Toaster richColors position="bottom-right" />
+          <RoleProvider>
+            {children}
+            <Toaster richColors position="bottom-right" />
+          </RoleProvider>
         </ThemeProvider>
         <Analytics />
       </body>

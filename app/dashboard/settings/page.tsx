@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { Switch } from '@/components/ui/switch'
-import { Upload, Camera } from 'lucide-react'
+import { Upload, Camera, Check } from 'lucide-react'
+import { useRole } from '@/lib/role-context'
+import { ROLE_LABELS } from '@/lib/permissions'
+import type { Role } from '@/lib/supabase/types'
 
 const panelStyle: React.CSSProperties = {
   background: 'var(--card)',
@@ -127,6 +130,9 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Role (demo) */}
+        <RolePanel />
+
         {/* Security */}
         <div className="border border-border p-[24px]" style={panelStyle}>
           <PanelTitle>Security</PanelTitle>
@@ -144,6 +150,40 @@ export default function SettingsPage() {
             Contact your administrator to manage organization settings.
           </p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function RolePanel() {
+  const { role, setRole } = useRole()
+  const roles = Object.keys(ROLE_LABELS) as Role[]
+  return (
+    <div className="border border-border p-[24px]" style={panelStyle}>
+      <PanelTitle>Active Role (demo)</PanelTitle>
+      <p className="text-[12px] mb-4 -mt-2" style={{ color: 'var(--muted-foreground)' }}>
+        Switch role to see permission-aware UI — write actions (edit route, add lane, resolve alert) appear only for permitted roles.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {roles.map(r => {
+          const active = r === role
+          return (
+            <button
+              key={r}
+              onClick={() => setRole(r)}
+              className="flex items-center justify-between gap-2 h-[40px] px-[14px] rounded-[var(--r-md)] text-[13px] text-left transition-all"
+              style={{
+                background: active ? 'var(--accent-wash)' : 'var(--secondary)',
+                border: `1px solid ${active ? 'var(--accent-line)' : 'var(--border)'}`,
+                color: active ? 'var(--accent-deep)' : 'var(--foreground)',
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {ROLE_LABELS[r]}
+              {active && <Check className="w-[15px] h-[15px]" strokeWidth={2} />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

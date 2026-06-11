@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { mockPorts, mockTeam, generateTempHistory, getLaneWaypoints, getLaneEvents } from '@/lib/mock-data'
 import { getDocumentsForLane } from '@/lib/services/documentsService'
+import { useRole } from '@/lib/role-context'
+import { can } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getLaneDetail, type LaneNode } from '@/lib/services/lanesService'
@@ -102,6 +104,7 @@ export default function LaneDetailPage() {
   const params = useParams()
   const id = params?.id as string
 
+  const { role } = useRole()
   const [routeEditOpen, setRouteEditOpen] = useState(false)
   const [selectedNode, setSelectedNode] = useState<LaneNode | null>(null)
   const { data: detail, loading } = useQuery(() => getLaneDetail(id), [id])
@@ -213,13 +216,15 @@ export default function LaneDetailPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={() => setRouteEditOpen(true)}
-            className="inline-flex items-center gap-2 h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
-            style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
-          >
-            <Pencil className="w-[14px] h-[14px]" strokeWidth={1.5} /> Edit Route
-          </button>
+          {can(role, 'edit_route') && (
+            <button
+              onClick={() => setRouteEditOpen(true)}
+              className="inline-flex items-center gap-2 h-[32px] px-[13px] rounded-full text-[12.5px] font-medium transition-all duration-200 hover:-translate-y-px"
+              style={{ background: 'var(--primary)', color: 'var(--on-accent)', boxShadow: '0 10px 24px -8px rgba(16,185,129,0.55)' }}
+            >
+              <Pencil className="w-[14px] h-[14px]" strokeWidth={1.5} /> Edit Route
+            </button>
+          )}
           <GhostButton><Pause className="w-[14px] h-[14px]" strokeWidth={1.5} /> Pause</GhostButton>
           <GhostButton><Archive className="w-[14px] h-[14px]" strokeWidth={1.5} /> Archive</GhostButton>
         </div>
