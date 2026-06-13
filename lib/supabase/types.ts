@@ -253,6 +253,15 @@ export interface DocumentRow {
   created_at: string
 }
 
+export interface UserDashboardLayoutRow {
+  id: string
+  user_id: string
+  dashboard_key: string
+  layout: unknown
+  created_at: string
+  updated_at: string
+}
+
 // ---- Database map for createClient<Database>() --------------------
 type TableShape<Row> = { Row: Row; Insert: Partial<Row>; Update: Partial<Row> }
 
@@ -273,6 +282,7 @@ export interface Database {
       alerts: TableShape<AlertRow>
       audit_logs: TableShape<AuditLogRow>
       documents: TableShape<DocumentRow>
+      user_dashboard_layouts: TableShape<UserDashboardLayoutRow>
     }
     Views: Record<string, never>
     Functions: Record<string, never>

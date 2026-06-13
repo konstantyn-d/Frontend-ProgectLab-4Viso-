@@ -511,3 +511,34 @@
   .print\:hidden { display: none !important; }
   body { background: #fff !important; }
 }
+
+/* ============================================================
+   react-grid-layout — theme-matched (dashboard layout editor)
+   ============================================================ */
+.react-grid-item.react-grid-placeholder {
+  background: var(--accent-wash) !important;
+  border: 1px dashed var(--accent-line);
+  border-radius: var(--r-lg);
+  opacity: 1 !important;
+}
+.react-grid-item.react-draggable-dragging {
+  z-index: 30;
+  transition: none !important;
+}
+.react-grid-item.resizing { z-index: 30; opacity: 0.96; }
+/* subtle themed resize handle (only shown in edit mode when isResizable) */
+.react-grid-item > .react-resizable-handle {
+  background-image: none;
+  width: 16px; height: 16px;
+}
+.react-grid-item > .react-resizable-handle.react-resizable-handle-se {
+  right: 4px; bottom: 4px;
+}
+.react-grid-item > .react-resizable-handle::after {
+  content: ''; position: absolute; right: 3px; bottom: 3px;
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--accent-deep);
+  border-bottom: 2px solid var(--accent-deep);
+  border-bottom-right-radius: 2px;
+  opacity: 0.8;
+}

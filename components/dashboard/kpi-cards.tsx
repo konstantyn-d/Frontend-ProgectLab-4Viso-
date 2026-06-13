@@ -49,7 +49,7 @@ interface KPICardProps {
   invertTrend?: boolean
 }
 
-function KPICard({ icon, iconVariant = 'accent', title, value, suffix, trend, trendLabel, sparkData, sparkColor, invertTrend }: KPICardProps) {
+export function KPICard({ icon, iconVariant = 'accent', title, value, suffix, trend, trendLabel, sparkData, sparkColor, invertTrend }: KPICardProps) {
   const isPositive = trend !== undefined ? (invertTrend ? trend < 0 : trend > 0) : false
   const isNegative = trend !== undefined ? (invertTrend ? trend > 0 : trend < 0) : false
   const TrendIcon = trend === undefined ? null : trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : Minus
