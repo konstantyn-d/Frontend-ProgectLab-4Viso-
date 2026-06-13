@@ -1,20 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Plus, Trash2, ChevronUp, ChevronDown, AlertTriangle, Building2, Thermometer } from 'lucide-react'
+import { Plus, Trash2, Lock, AlertTriangle, Building2, Thermometer } from 'lucide-react'
 import { useQuery } from '@/lib/hooks/useQuery'
 import { getCompanies, companyWarnings, type CompanyVM } from '@/lib/services/companiesService'
 import { previewRouteRisk, saveRoute, type DraftNode, type RouteContext } from '@/lib/services/routeService'
+import { logAudit } from '@/lib/services/auditService'
 import type { Lane } from '@/lib/mock-data'
 import type { LaneNode } from '@/lib/services/lanesService'
 import type { NodeType } from '@/lib/supabase/types'
 import { useRole } from '@/lib/role-context'
 import { can } from '@/lib/permissions'
+import { ENABLE_ROUTE_NODE_DND } from '@/lib/feature-flags'
+import { useRouteNodesDnd } from '@/lib/hooks/useRouteNodesDnd'
+import { SortableRouteNodes } from '@/components/route-builder/SortableRouteNodes'
+import { SortableRouteNodeCard } from '@/components/route-builder/SortableRouteNodeCard'
 
 const NODE_TYPES: NodeType[] = ['warehouse', 'airport', 'port', 'hub', 'customs', 'final_delivery']
+
+/** Draft node with a stable key for DnD identity (transient; ignored on save). */
+type KeyedNode = DraftNode & { __key: string }
+const newKey = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 function laneNodeToDraft(n: LaneNode): DraftNode {
   return {
@@ -58,13 +68,20 @@ export function RouteBuilderModal({
 }) {
   const { role } = useRole()
   const { data: companies } = useQuery(getCompanies, [])
-  const [nodes, setNodes] = useState<DraftNode[]>([])
+  const [nodes, setNodes] = useState<KeyedNode[]>([])
   const [busy, setBusy] = useState(false)
+  const initialOrderRef = useRef<string[]>([])
 
   // (re)initialize draft whenever the modal opens
   useEffect(() => {
-    if (open) setNodes(initialNodes.length ? initialNodes.map(laneNodeToDraft) : synthFromLane(lane))
+    if (!open) return
+    const base = initialNodes.length ? initialNodes.map(laneNodeToDraft) : synthFromLane(lane)
+    const keyed = base.map(n => ({ ...n, __key: newKey() }))
+    setNodes(keyed)
+    initialOrderRef.current = keyed.map(n => n.code)
   }, [open, initialNodes, lane])
+
+  const { sensors, handleDragEnd } = useRouteNodesDnd(nodes, setNodes)
 
   const ctx: RouteContext = {
     laneCode: lane.id, tempMin: lane.tempMin, tempMax: lane.tempMax, carrierName: lane.carrier,
@@ -74,12 +91,13 @@ export function RouteBuilderModal({
 
   const update = (i: number, patch: Partial<DraftNode>) => setNodes(ns => ns.map((n, j) => (j === i ? { ...n, ...patch } : n)))
   const remove = (i: number) => setNodes(ns => ns.filter((_, j) => j !== i))
-  const move = (i: number, dir: -1 | 1) => setNodes(ns => {
-    const j = i + dir
-    if (j < 0 || j >= ns.length) return ns
-    const copy = [...ns];[copy[i], copy[j]] = [copy[j], copy[i]]; return copy
+  // Insert new waypoints before the (locked) destination.
+  const add = () => setNodes(ns => {
+    const copy = [...ns]
+    const at = Math.max(1, copy.length - 1)
+    copy.splice(at, 0, { ...blankNode(lane), __key: newKey() })
+    return copy
   })
-  const add = () => setNodes(ns => [...ns, blankNode(lane)])
 
   const assignCompany = (i: number, c: CompanyVM) => update(i, {
     responsibleCompanyId: c.id, responsibleCompanyName: c.name,
@@ -91,6 +109,16 @@ export function RouteBuilderModal({
     setBusy(true)
     try {
       await saveRoute(ctx, nodes)
+      // Route order changed → record a dedicated reorder audit entry.
+      const oldOrder = initialOrderRef.current
+      const newOrder = nodes.map(n => n.code)
+      if (oldOrder.length === newOrder.length && oldOrder.some((c, i) => c !== newOrder[i])) {
+        await logAudit({
+          actionType: 'route_nodes_reordered', entityType: 'lane', laneId: null,
+          description: `Route nodes reordered for lane ${lane.id}`,
+          metadata: { oldOrder, newOrder },
+        }).catch(() => {})
+      }
       toast.success(`Route saved · risk ${risk.score}% (${risk.level}) · logged to audit`)
       onSaved()
       onOpenChange(false)
@@ -116,13 +144,17 @@ export function RouteBuilderModal({
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: levelColor }}>{risk.score}% · {risk.level}</span>
         </div>
 
-        {/* nodes */}
-        <div className="space-y-2.5">
-          {nodes.map((n, i) => {
+        {/* nodes — drag the handle to reorder; origin & destination are locked */}
+        {ENABLE_ROUTE_NODE_DND && nodes.length > 0 && (
+          <p className="text-[11px] -mb-1" style={{ color: 'var(--muted-foreground)' }}>Drag the handle to reorder waypoints. Origin and destination are locked.</p>
+        )}
+        {(() => {
+          const cards = nodes.map((n, i) => {
+            const locked = i === 0 || i === nodes.length - 1
             const company = companies?.find(c => c.id === n.responsibleCompanyId)
             const warnings = company ? companyWarnings(company, true) : []
-            return (
-              <div key={i} className="border border-border rounded-[var(--r-md)] p-3" style={{ background: 'var(--secondary)' }}>
+            const body = (
+              <div className="border border-border rounded-[var(--r-md)] p-3" style={{ background: 'var(--secondary)' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-6 h-6 rounded-full flex items-center justify-center font-mono text-[11px] shrink-0" style={{ background: 'var(--accent-wash)', color: 'var(--accent-deep)' }}>{i + 1}</span>
                   <input
@@ -132,9 +164,11 @@ export function RouteBuilderModal({
                     style={{ color: 'var(--foreground)' }}
                   />
                   <div className="flex items-center gap-1">
-                    <button onClick={() => move(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded disabled:opacity-30" style={{ color: 'var(--muted-foreground)' }}><ChevronUp className="w-4 h-4" strokeWidth={1.6} /></button>
-                    <button onClick={() => move(i, 1)} disabled={i === nodes.length - 1} className="w-6 h-6 flex items-center justify-center rounded disabled:opacity-30" style={{ color: 'var(--muted-foreground)' }}><ChevronDown className="w-4 h-4" strokeWidth={1.6} /></button>
-                    <button onClick={() => remove(i)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: 'var(--danger)' }}><Trash2 className="w-[14px] h-[14px]" strokeWidth={1.6} /></button>
+                    {locked ? (
+                      <span title="Origin/destination — locked" className="w-6 h-6 flex items-center justify-center" style={{ color: 'var(--muted-foreground)', opacity: 0.55 }}><Lock className="w-[13px] h-[13px]" strokeWidth={1.6} /></span>
+                    ) : (
+                      <button onClick={() => remove(i)} aria-label="Remove waypoint" className="w-6 h-6 flex items-center justify-center rounded" style={{ color: 'var(--danger)' }}><Trash2 className="w-[14px] h-[14px]" strokeWidth={1.6} /></button>
+                    )}
                   </div>
                 </div>
 
@@ -187,8 +221,14 @@ export function RouteBuilderModal({
                 )}
               </div>
             )
-          })}
-        </div>
+            return ENABLE_ROUTE_NODE_DND
+              ? <SortableRouteNodeCard key={n.__key} id={n.__key} locked={locked}>{body}</SortableRouteNodeCard>
+              : <div key={n.__key}>{body}</div>
+          })
+          return ENABLE_ROUTE_NODE_DND
+            ? <SortableRouteNodes items={nodes.map(n => n.__key)} sensors={sensors} onDragEnd={handleDragEnd}>{cards}</SortableRouteNodes>
+            : <div className="space-y-2.5">{cards}</div>
+        })()}
 
         <button onClick={add} className="inline-flex items-center gap-2 h-[34px] px-[14px] rounded-full text-[12.5px] font-medium self-start" style={{ background: 'var(--secondary)', border: '1px dashed var(--border-hover)', color: 'var(--foreground)' }}>
           <Plus className="w-[14px] h-[14px]" strokeWidth={1.8} /> Add waypoint
